@@ -12,7 +12,10 @@ contract Contest is Ownable {
     IERC721 private ylNFTERC721;
     IERC1155 private ylNFTERC1155;
     IERC20 private ylERC20;
-    YLVault private treasuryAddress;
+    YLVault private vaultAddress;
+    address private treasuryAddress;
+    uint matchFee;
+    
 
     enum MatchStatus{ PENDING, STARTED, ENDED }
 
@@ -25,28 +28,40 @@ contract Contest is Ownable {
     }
     
     // Index for the won and lost matchs per address. 1- Won matchs, 2- Lost matchs.
-    mapping(address => mapping(uint8 => uint)) resultsGamer; 
+    mapping(address => mapping(uint8 => uint)) resultsPlayer; 
     // SportCategory => MatchCounter => MatchInfo
     mapping(uint8 => mapping(uint => Match)) matchIndex;
     mapping(address => bool) playing;
     // SportCategory => MatchCounter
     mapping(uint8 => uint) matchCounter;
+    mapping(address => bool) contestAdmins;
 
     event MatchCreated(address GameCreator, uint8 Category, uint MatchID, uint time);
     event RivalFound(address GameCreator, uint8 Category, address Rival, uint MatchID, uint time);
     event MatchFinished(address Winner, uint8 Category, address Looser, uint MatchID, uint time);
+    event MatchCommissionSetted(uint256 SettedFee, uint256 SettedTime);
+    event NewAdminSetted(address NewAdmin, uint SettedTime);
 
-    constructor(IERC721 _ylNFTERC721, IERC1155 _ylNFTERC1155, IERC20 _ylERC20, YLVault _treasuryAddress) {
+    modifier ylOwners() {
+        require(contestAdmins[msg.sender] == true, "You aren't the owner of contest");
+        _;
+    }
+
+    constructor(IERC721 _ylNFTERC721, IERC1155 _ylNFTERC1155, IERC20 _ylERC20, YLVault _vaultAddress) {
         ylNFTERC721 = _ylNFTERC721;
         ylNFTERC1155 = _ylNFTERC1155;
         ylERC20 = _ylERC20;
-        treasuryAddress = _treasuryAddress;
+        vaultAddress = _vaultAddress;
+        treasuryAddress = owner();
+        contestAdmins[owner()] = true;
     }
+
 
     /// @dev Creates a new match.
     /// @param _category match; set by player
-    function createMatch(uint8 _category) external returns(Match memory){
-        require(YLVault(treasuryAddress).checkElegible(msg.sender, _category) == true, "You are not elegible.");
+    function createMatch(uint8 _category) external payable returns(Match memory){
+        require(msg.value == matchFee, "Pay the Match fee.");
+        require(YLVault(vaultAddress).checkElegible(msg.sender, _category) == true, "You are not elegible.");
         require(!playing[msg.sender], "Finish your match before");
         playing[msg.sender] = true;
         Match memory _match = Match (
@@ -64,13 +79,13 @@ contract Contest is Ownable {
 
   /// @dev Player joins match
   /// @param _category; category sport match player wants to join
-    function joinMatch(uint8 _category) external returns(Match memory) {
+    function joinMatch(uint8 _category) external payable returns(Match memory) {
+        require(msg.value == matchFee, "Pay the Match fee.");
         uint _matchCounter = matchCounter[_category];
         Match memory _match =  matchIndex[_category][_matchCounter];
         require(_match.matchStatus == MatchStatus.PENDING, "The match has started");
         require(!playing[msg.sender], "Finish your match before");
         playing[msg.sender] = true;
-
         _match.players[1] = msg.sender; // Set Rival
         _match.matchStatus = MatchStatus.STARTED; // Update Match status
 
@@ -81,6 +96,7 @@ contract Contest is Ownable {
         return _match;
     }
 
+    // We need to add the resolvematch LOGIC and declare winner and looser.
     function resolveMatch(uint8 _category, uint _matchId) external returns(Match memory) {
         Match memory _match = matchIndex[_category][_matchId];
         require(_match.matchStatus == MatchStatus.STARTED, "The match is not pending");
@@ -91,9 +107,26 @@ contract Contest is Ownable {
         playing[_match.players[0]] = false;
         playing[_match.players[1]] = false;
 
+        // matchIndex[_category][_matchId] = _match;
+        // resultsPlayer[_winner][1]++;
+        // resultsPlayer[_looser][2]--;
 
         return _match;
         // emit MatchFinished(address Winner, uint8 Category, address Looser, uint MatchID, uint time);
+    }
+
+    function withdrawFunds(uint _amount) external onlyOwner{
+        payable(treasuryAddress).transfer(_amount);
+    }
+
+    function setPermissions(address _admin) external onlyOwner{
+        contestAdmins[_admin] != contestAdmins[_admin];
+        emit NewAdminSetted(_admin, block.timestamp);
+    } 
+
+    function setMatchFee(uint _fee) external onlyOwner{
+        matchFee = _fee;
+        emit MatchCommissionSetted(_fee, block.timestamp);
     }
 
     // Getter for Match details.
@@ -101,6 +134,13 @@ contract Contest is Ownable {
         return matchIndex[_category][_matchId];
     }
 
+    function getTotalWins(address _player) public view returns(uint){
+        return resultsPlayer[_player][1];
+    }
+
+    function getTotalLost(address _player) public view returns(uint){
+        return resultsPlayer[_player][2];
+    }
 
 }
     // EXAMPLE P2E
