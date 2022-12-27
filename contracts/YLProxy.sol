@@ -189,4 +189,8 @@ contract YLProxy is ReentrancyGuard, Ownable {
             return false;
         }
     }
+
+    function totalStakedAmount(address _user, address _contract) external view returns(uint){
+        return stakedAmount[_user][_contract];
+    }
 }
