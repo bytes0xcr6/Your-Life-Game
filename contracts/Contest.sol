@@ -7,15 +7,17 @@ import "@openzeppelin/contracts/token/ERC721/IERC721.sol";
 import "@openzeppelin/contracts/token/ERC1155/ERC1155.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "./YLVault.sol";
+import "./YLProxy.sol";
 
 contract Contest is Ownable {
     IERC721 private ylNFTERC721;
     IERC1155 private ylNFTERC1155;
     IERC20 private ylERC20;
+    YLProxy private ylProxy;
     YLVault private vaultAddress;
     address private treasuryAddress;
     uint matchFee;
-    
+    uint8 dailyMatchs;
 
     enum MatchStatus{ PENDING, STARTED, ENDED }
 
@@ -34,26 +36,22 @@ contract Contest is Ownable {
     mapping(address => bool) playing;
     // SportCategory => MatchCounter
     mapping(uint8 => uint) matchCounter;
-    mapping(address => bool) contestAdmins;
 
-    event MatchCreated(address GameCreator, uint8 Category, uint MatchID, uint time);
-    event RivalFound(address GameCreator, uint8 Category, address Rival, uint MatchID, uint time);
-    event MatchFinished(address Winner, uint8 Category, address Looser, uint MatchID, uint time);
-    event MatchCommissionSetted(uint256 SettedFee, uint256 SettedTime);
+    event MatchCreated(address GameCreator, uint8 Category, uint MatchID, uint SettedTime);
+    event RivalFound(address GameCreator, uint8 Category, address Rival, uint MatchID, uint SettedTime);
+    event MatchFinished(address Winner, uint8 Category, address Looser, uint MatchID, uint SettedTime);
+    event MatchCommissionSetted(uint SettedFee, uint SettedTime);
     event NewAdminSetted(address NewAdmin, uint SettedTime);
+    event TotalDailyMatchsUpdated(uint8 DailyMatchs, uint SettedTime);
 
-    modifier ylOwners() {
-        require(contestAdmins[msg.sender] == true, "You aren't the owner of contest");
-        _;
-    }
 
-    constructor(IERC721 _ylNFTERC721, IERC1155 _ylNFTERC1155, IERC20 _ylERC20, YLVault _vaultAddress) {
+    constructor(IERC721 _ylNFTERC721, IERC1155 _ylNFTERC1155, IERC20 _ylERC20, YLProxy _ylProxy, YLVault _vaultAddress) {
         ylNFTERC721 = _ylNFTERC721;
         ylNFTERC1155 = _ylNFTERC1155;
         ylERC20 = _ylERC20;
+        ylProxy = _ylProxy;
         vaultAddress = _vaultAddress;
         treasuryAddress = owner();
-        contestAdmins[owner()] = true;
     }
 
 
@@ -119,14 +117,14 @@ contract Contest is Ownable {
         payable(treasuryAddress).transfer(_amount);
     }
 
-    function setPermissions(address _admin) external onlyOwner{
-        contestAdmins[_admin] != contestAdmins[_admin];
-        emit NewAdminSetted(_admin, block.timestamp);
-    } 
-
     function setMatchFee(uint _fee) external onlyOwner{
         matchFee = _fee;
         emit MatchCommissionSetted(_fee, block.timestamp);
+    }
+
+    function setDailyMatchs(uint8 _amount) external onlyOwner{
+        dailyMatchs = _amount;
+        emit TotalDailyMatchsUpdated(_amount, block.timestamp);
     }
 
     // Getter for Match details.
@@ -143,16 +141,3 @@ contract Contest is Ownable {
     }
 
 }
-    // EXAMPLE P2E
-// https://github.com/adrianhajdin/project_web3_battle_game/blob/main/web3/contracts/AvaxGods.sol
-
-    //   /// @dev internal function to generate random number; used for Match Card Attack and Defense Strength
-    // function _createRandomNum(uint256 _max, address _sender) internal view returns (uint256 randomValue) {
-    //     uint256 randomNum = uint256(keccak256(abi.encodePacked(block.difficulty, block.timestamp, _sender)));
-
-    //     randomValue = randomNum % _max; 
-    //     if(randomValue == 0) {
-    //     randomValue = _max / 2;
-    //      }
-    //      return randomValue;
-    //  } 
