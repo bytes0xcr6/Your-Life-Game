@@ -14,6 +14,7 @@ contract YLVault is Ownable{
     IERC1155 private ylNFTERC1155;
     IERC20 private ylERC20;
     address private treasuryAddress;
+    uint revertNFTComision;
 
     mapping(address => address) public vaultContract;
     // address => SportCategory => amountNFTs Total amount of NFTs in substorage per address and Sport.  1- Footbal, 2- Basketball, 3- Rugby (Example)
@@ -75,12 +76,7 @@ contract YLVault is Ownable{
         emit DepositedNftFromWalletToVaultERC1155(msg.sender, gamerAddress, vaultContract[gamerAddress], _tokenId, _amount, block.timestamp);
     }
 
-    function setRevertNftToWalletCommision(uint256 _fee) external onlyOwner returns(uint256){
-        emit RevertNftToWalletCommissionSetted(_fee, block.timestamp);
-        return _fee;
-    }
-
-    // Setter from the Vault substorage Counter. 
+    // Setter from the Vault substorage Counter when we revert NFTs to Wallet. 
     function updateCounter(address _gamer, uint8 _category, uint _amount) external {
         require(vaultContract[_gamer] != msg.sender, "You are not the vault owner");
         NFTsCounter[_gamer][_category] -= _amount; 
@@ -88,6 +84,12 @@ contract YLVault is Ownable{
         if(NFTsCounter[_gamer][_category] < playersNeeded[_category]) {
             elegibleGamer[_gamer][_category] = false;
         }
+        
+    }
+
+    function setRevertNftToWalletCommision(uint256 _fee) external onlyOwner{
+        revertNFTComision = _fee;
+        emit RevertNftToWalletCommissionSetted(_fee, block.timestamp);
     }
 
     // Setter for the minimum number of players per category.
@@ -95,8 +97,14 @@ contract YLVault is Ownable{
         playersNeeded[_category] = _playersNeeded;
     }
 
+    // Check if the wallet is elegible to play.
     function checkElegible(address _user, uint8 _category) public view returns(bool){
         return elegibleGamer[_user][_category];
+    }
+
+    // Check the Reverted Wallet Fee.
+    function checkRevertedToWalletFee() public view returns(uint){
+        return revertNFTComision;
     }
 
 }
