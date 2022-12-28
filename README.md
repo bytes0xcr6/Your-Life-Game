@@ -22,8 +22,8 @@ P2E Sport Game
 # VAULT CONTRACT:
 **Substorage for keeping user´s ERC721(NFTs) & ERC1155(Boosters).**
     
-    - Players / Partners can withdraw/revert their ERC721(NFTs) & ERC1155(Boosters) at any time, but they have to pay a fee.
-    - Burning option for Boosters.
+    - Function to withdraw/revert the owner´s ERC721(NFTs) & ERC1155(Boosters) at any time, but they have to pay a fee.
+    - Function to burn ERC1155. Option for Boosters.
 
      EVENTS:
         event RevertTransferNftFromVaultToWalletERC721(address VaultAddress, address GamerAddress, uint256 NFTID, uint256 FeeAmount, uint256 RevertedTime);
