@@ -51,3 +51,16 @@ P2E Sport Game
         event TournamentCommissionSetted(uint SettedFee, uint SettedTime); 
         event TournamentFeePaid(address Player, uint TournamentID, uint SettedTime);
         event MinTokensStakedPlayUpdated(uint MinYLTStaked, uint SettedTime);
+        
+        
+ # EXTRA ADDED TO OTHER CONTRACTS
+ 
+ **YLproxy.sol**
+ 
+ Getter for the total YLT staked by address & contract.
+ ```
+ function totalStakedAmount(address _user, address _contract) external view returns(uint){
+        return stakedAmount[_user][_contract];
+    }
+```
+ 
