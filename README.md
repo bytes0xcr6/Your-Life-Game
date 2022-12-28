@@ -67,5 +67,12 @@ P2E Sport Game
  **YLNFT.sol**
  Getter for the NFT category
  ```
- function
+   mapping(uint => string) private categoryByID;
+
+   setter added to createToken(): categoryByID[newTokenId] = _sport;
+   
+   function getCategory(uint _tokenId) external view returns(string memory){
+        return categoryByID[_tokenId];
+    }
+ 
  ``` 
