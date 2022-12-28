@@ -11,6 +11,7 @@ contract Vault {
     IERC721 private ylNFTERC721;
     IERC1155 private ylNFTERC1155;
     IERC20 private ylERC20;
+    YLNFT private ylNFT;
 
     address private treasuryAddress;
 
@@ -20,29 +21,31 @@ contract Vault {
     event BoosterBurned(address VaultAddress, address GamerAddress, uint256 BoosterID, uint256 Amount, uint256 BurnedTime);
     event feePerNFTUpdated(uint NewFee, uint UpdatedTime);
 
-    constructor(IERC721 _ylNFTERC721, IERC1155 _ylNFTERC1155, IERC20 _ylERC20, address _treasuryAddress) {
+    constructor(IERC721 _ylNFTERC721, IERC1155 _ylNFTERC1155, IERC20 _ylERC20, YLNFT _ylNFT, address _treasuryAddress) {
         ylNFTERC721 = _ylNFTERC721;
         ylNFTERC1155 = _ylNFTERC1155;
         ylERC20 = _ylERC20;
+        ylNFT = _ylNFT;
         treasuryAddress = _treasuryAddress;
     }
 
-    function revertNftFromVaultToWalletERC721(uint256[] memory _tokenIds, uint8 _category) external {
+    function revertNftFromVaultToWalletERC721(uint256[] memory _tokenIds) external {
         require(_tokenIds.length > 0, "It mustn't 0");
         //Get fees from the YLVault contract and multiply for the tokens length.
         uint256 _fee = YLVault(treasuryAddress).checkRevertedToWalletFee() * _tokenIds.length;
         require(ylERC20.balanceOf(msg.sender) >= _fee, "Insufficient balance for fee");
         //Update counter for each Sport.
-        YLVault(treasuryAddress).updateCounter(msg.sender, _category, _tokenIds.length); 
         ylERC20.transferFrom(msg.sender, treasuryAddress, _fee);
 
         for(uint i=0; i < _tokenIds.length; i++) {
+            string memory _category = ylNFT.getCategory(_tokenIds[i]);
             ylNFTERC721.transferFrom(address(this), msg.sender, _tokenIds[i]); 
+            YLVault(treasuryAddress).updateCounter(msg.sender, _category, _tokenIds.length); 
             emit RevertTransferNftFromVaultToWalletERC721(address(this), msg.sender, _tokenIds[i], _fee, block.timestamp);
         }
     }
 
-    function revertNftFromVaultToWalletERC1155(uint256 _tokenId, uint8 _category, uint256 _amount) external {
+    function revertNftFromVaultToWalletERC1155(uint256 _tokenId, string memory _category, uint256 _amount) external {
         require(_amount > 0, "It mustn't 0");
         //Get fees from the YLVault contract and multiply for the tokens length.
         uint256 _fee = YLVault(treasuryAddress).checkRevertedToWalletFee() * _amount;
@@ -60,5 +63,4 @@ contract Vault {
         ylNFTERC1155.safeTransferFrom(address(this), address(0), _tokenId, _amount, "");
         emit BoosterBurned(address(this), msg.sender, _tokenId, _amount, block.timestamp);
     }
-
 }
