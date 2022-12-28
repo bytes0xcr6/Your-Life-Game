@@ -64,3 +64,8 @@ P2E Sport Game
     }
 ```
  
+ **YLNFT.sol**
+ Getter for the NFT category
+ ```
+ function
+ ``` 
