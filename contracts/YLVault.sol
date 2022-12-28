@@ -16,6 +16,7 @@ contract YLVault is Ownable{
     address private treasuryAddress;
     uint revertNFTComision;
 
+    // player address => subStorageVault address
     mapping(address => address) public vaultContract;
     // address => SportCategory => amountNFTs Total amount of NFTs in substorage per address and Sport.  1- Footbal, 2- Basketball, 3- Rugby (Example)
     mapping(address => mapping (uint8 => uint)) public NFTsCounter; 
@@ -37,43 +38,37 @@ contract YLVault is Ownable{
         treasuryAddress = owner();
     }
 
-    function storeNftFromWalletToVaultERC721(address gamerAddress, uint8 _category, uint256[] memory _tokenIds) external {
+    function storeNftFromWalletToVaultERC721(address _gamer, uint8 _category, uint256[] memory _tokenIds) external {
         require(_tokenIds.length > 0, "It mustn't 0");
 
-        if(vaultContract[gamerAddress] == address(0x0)) {
+        if(vaultContract[_gamer] == address(0x0)) {
             Vault newVault = new Vault(ylNFTERC721, ylNFTERC1155, ylERC20, treasuryAddress);
-            vaultContract[gamerAddress] = address(newVault);
+            vaultContract[_gamer] = address(newVault);
         }
         for(uint i = 0; i < _tokenIds.length; i++)
         {
-            ylNFTERC721.transferFrom(msg.sender, vaultContract[gamerAddress], _tokenIds[i]);
-            NFTsCounter[gamerAddress][_category] += _tokenIds.length; //Update counter for each Sport.
-            emit DepositedNftFromWalletToVaultERC721(msg.sender, gamerAddress, vaultContract[gamerAddress], _tokenIds[i], block.timestamp);
+            ylNFTERC721.transferFrom(msg.sender, vaultContract[_gamer], _tokenIds[i]);
+            NFTsCounter[_gamer][_category] += _tokenIds.length; //Update counter for each Sport.
+            emit DepositedNftFromWalletToVaultERC721(msg.sender, _gamer, vaultContract[_gamer], _tokenIds[i], block.timestamp);
         }
 
         // Update elegibility
-        if(NFTsCounter[gamerAddress][_category] > playersNeeded[_category]) {
-            elegibleGamer[gamerAddress][_category] = true;
+        if(NFTsCounter[_gamer][_category] > playersNeeded[_category]) {
+            elegibleGamer[_gamer][_category] = true;
         }
     }
 
-    function storeNftFromWalletToVaultERC1155(address gamerAddress, uint8 _category, uint256 _tokenId, uint256 _amount) external {
+    function storeNftFromWalletToVaultERC1155(address _gamer, uint256 _tokenId, uint256 _amount) external {
         require(_amount > 0, "It mustn't 0");
     
-        if(vaultContract[gamerAddress] == address(0x0)) {
+        if(vaultContract[_gamer] == address(0x0)) {
             Vault newVault = new Vault(ylNFTERC721, ylNFTERC1155, ylERC20, treasuryAddress);
-            vaultContract[gamerAddress] = address(newVault);
+            vaultContract[_gamer] = address(newVault);
         }
         
-        ylNFTERC1155.safeTransferFrom(msg.sender, vaultContract[gamerAddress], _tokenId, _amount, "");
-        NFTsCounter[gamerAddress][_category] += _amount; //Update counter for each Sport.
+        ylNFTERC1155.safeTransferFrom(msg.sender, vaultContract[_gamer], _tokenId, _amount, "");
 
-        // Update elegibility
-        if(NFTsCounter[gamerAddress][_category] > playersNeeded[_category]) {
-            elegibleGamer[gamerAddress][_category] = true;
-        }
-
-        emit DepositedNftFromWalletToVaultERC1155(msg.sender, gamerAddress, vaultContract[gamerAddress], _tokenId, _amount, block.timestamp);
+        emit DepositedNftFromWalletToVaultERC1155(msg.sender, _gamer, vaultContract[_gamer], _tokenId, _amount, block.timestamp);
     }
 
     // Setter from the Vault substorage Counter when we revert NFTs to Wallet. 
@@ -83,10 +78,10 @@ contract YLVault is Ownable{
         
         if(NFTsCounter[_gamer][_category] < playersNeeded[_category]) {
             elegibleGamer[_gamer][_category] = false;
-        }
-        
+        }  
     }
 
+    // Setter for reverting NFTs from the subvault to the owner´s wallet
     function setRevertNftToWalletCommision(uint256 _fee) external onlyOwner{
         revertNFTComision = _fee;
         emit RevertNftToWalletCommissionSetted(_fee, block.timestamp);
@@ -97,14 +92,18 @@ contract YLVault is Ownable{
         playersNeeded[_category] = _playersNeeded;
     }
 
+    // Getter for the subVault of wallet address
+    function getSubvault(address _gamer) external view returns(address){
+        return vaultContract[_gamer];
+    }
+
     // Check if the wallet is elegible to play.
-    function checkElegible(address _user, uint8 _category) public view returns(bool){
-        return elegibleGamer[_user][_category];
+    function checkElegible(address _gamer, uint8 _category) external view returns(bool){
+        return elegibleGamer[_gamer][_category];
     }
 
     // Check the Reverted Wallet Fee.
-    function checkRevertedToWalletFee() public view returns(uint){
+    function checkRevertedToWalletFee() external view returns(uint){
         return revertNFTComision;
     }
-
 }
