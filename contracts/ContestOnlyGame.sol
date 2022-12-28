@@ -21,7 +21,7 @@ contract ContestOnlyGame {
 
     /// @dev Match struct to store the match info
     struct Match {
-        uint8 category; /// @param SportCategory 1- Footbal, 2- Bastket, etc
+        string category; /// @param SportCategory
         address[2] players; /// @param players address array representing players in this battle
         address winner; /// @param winner winner address
     }
@@ -29,7 +29,7 @@ contract ContestOnlyGame {
     // Index for the won, draw and lost matchs per address. 1- Won matchs, 2- Lost matchs, 3- Draws
     mapping(address => mapping(uint8 => uint)) resultsPlayer; 
     // SportCategory => MatchCounter => MatchInfo
-    mapping(uint8 => mapping(uint => Match)) matchIndex;
+    mapping(string => mapping(uint => Match)) matchIndex;
     // SportCategory => MatchCounter
     mapping(uint8 => uint) matchCounter;
     // TournamentID => player =>  Tournament FeePaid
@@ -39,7 +39,7 @@ contract ContestOnlyGame {
     // // Track tournament is not filled to access
     // mapping() playerTournament;
 
-    event MatchFinished(address Winner, uint8 Category, address Looser, uint MatchID, uint SettedTime);
+    event MatchFinished(address Winner, string Category, address Looser, uint MatchID, uint SettedTime);
     event TournamentCommissionSetted(uint SettedFee, uint SettedTime);
     event TournamentFeePaid(address Player, uint TournamentID, uint SettedTime);
     event MinTokensStakedPlayUpdated(uint MinYLTStaked, uint SettedTime);
@@ -58,7 +58,7 @@ contract ContestOnlyGame {
     }
 
     // Play function, If we leave the _tournament parameter as 0 it will take it as a daily game. 
-    function play(address _player1, uint _score1, address _player2, uint _score2, uint8 _category, uint8 _tournamentID) external onlyOwner{
+    function play(address _player1, uint _score1, address _player2, uint _score2, string _category, uint8 _tournamentID) external onlyOwner{
         require(ylProxy.totalStakedAmount(_player1, address(ylERC20)) >= tokensNeededPlay, "You need to stake more YLT");
         require(ylProxy.totalStakedAmount(_player2, address(ylERC20)) >= tokensNeededPlay, "You need to stake more YLT");
         require(YLVault(vaultAddress).checkElegible(_player1, _category) == true, "You are not elegible.");
@@ -149,7 +149,7 @@ contract ContestOnlyGame {
     }
 
     // Getter for Match details.
-    function getMatch(uint8 _category, uint _matchId) public view returns(Match memory){
+    function getMatch(string _category, uint _matchId) public view returns(Match memory){
         return matchIndex[_category][_matchId];
     }
 
