@@ -71,9 +71,10 @@ P2E Sport Game
    mapping(uint => string) private categoryByID;
     
  ``` 
-   setter added to createToken():  
  ``` 
-categoryByID[newTokenId] = _sport;
+ // setter added to createToken():  
+
+ categoryByID[newTokenId] = _sport;
     
  ```  
  ``` 
