@@ -65,14 +65,15 @@ P2E Sport Game
 ```
  
  **YLNFT.sol**
+ 
  Getter for the NFT category
  ```
    mapping(uint => string) private categoryByID;
     
  ``` 
- 
+   setter added to createToken():  
  ``` 
-   setter added to createToken(): categoryByID[newTokenId] = _sport;
+categoryByID[newTokenId] = _sport;
     
  ```  
  ``` 
