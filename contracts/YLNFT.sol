@@ -41,6 +41,7 @@ contract YLNFT is
 
     mapping(string => mapping(string => uint256)) private categoryAmount;
     mapping(string => mapping(string => uint256)) private categoryCount;
+    mapping(uint => string) private categoryByID;
     mapping(uint256 => uint256) private burnSignature;
     mapping(uint256 => mapping(address => bool)) private burnAddress;
 
@@ -145,7 +146,7 @@ contract YLNFT is
         return yltpause;
     }
 
-    //transferk
+    //transfer
     function ylnft721Transfer(address _to, uint256 _tokenId)
         public
         nonReentrant
@@ -192,6 +193,8 @@ contract YLNFT is
         categoryCount[_sport][_cnft] = categoryCount[_sport][_cnft] + 1;
 
         uint256 gasUsed = startGas - gasleft();
+
+        categoryByID[newTokenId] = _sport;
 
         emit minted721(msg.sender, newTokenId, gasUsed);
 
@@ -321,5 +324,9 @@ contract YLNFT is
         burnSignature[_tokenId] = burnSignature[_tokenId] + 1;
 
         return burnSignature[_tokenId];
+    }
+
+    function getCategory(uint _tokenId) external view returns(string memory){
+        return categoryByID[_tokenId];
     }
 }
