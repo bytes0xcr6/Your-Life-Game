@@ -5,15 +5,16 @@ import "@openzeppelin/contracts/token/ERC721/IERC721.sol";
 import "@openzeppelin/contracts/token/ERC1155/ERC1155.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "./YLVault.sol";
+import "./YLNFT.sol";
 
 contract Vault {
 
-    IERC721 private ylNFTERC721;
-    IERC1155 private ylNFTERC1155;
-    IERC20 private ylERC20;
-    YLNFT private ylNFT;
+    IERC721 public ylNFTERC721;
+    IERC1155 public ylNFTERC1155;
+    IERC20 public ylERC20;
+    YLNFT public ylNFT;
 
-    address private treasuryAddress;
+    address public treasuryAddress;
 
     event RevertTransferNftFromVaultToWalletERC721(address VaultAddress, address GamerAddress, uint256 NFTID, uint256 FeeAmount, uint256 RevertedTime);
     event RevertTransferNftFromVaultToWalletERC1155(address VaultAddress, address GamerAddress, uint256 NFTID, uint256 Amount, uint256 FeeAmount, uint256 RevertedTime);
