@@ -10,13 +10,13 @@ import "./YLVault.sol";
 import "./YLProxy.sol";
 
 contract ContestOnlyGame {
-    IERC721 private ylNFTERC721;
-    IERC1155 private ylNFTERC1155;
-    IERC20 private ylERC20;
-    YLProxy private ylProxy;
-    YLVault private vaultAddress;
-    address private treasuryAddress;
-    uint private tokensNeededPlay;
+    IERC721 public ylNFTERC721;
+    IERC1155 public ylNFTERC1155;
+    IERC20 public ylERC20;
+    YLProxy public ylProxy;
+    YLVault public vaultAddress;
+    address public treasuryAddress;
+    uint public tokensNeededPlay;
     // uint8 private dailyMatchs;
 
     /// @dev Match struct to store the match info
@@ -31,7 +31,7 @@ contract ContestOnlyGame {
     // SportCategory => MatchCounter => MatchInfo
     mapping(string => mapping(uint => Match)) matchIndex;
     // SportCategory => MatchCounter
-    mapping(uint8 => uint) matchCounter;
+    mapping(string => uint) matchCounter;
     // TournamentID => player =>  Tournament FeePaid
     mapping(uint => mapping(address => bool)) feePaid;
     // Tournament ID => tournament Fee
@@ -58,13 +58,13 @@ contract ContestOnlyGame {
     }
 
     // Play function, If we leave the _tournament parameter as 0 it will take it as a daily game. 
-    function play(address _player1, uint _score1, address _player2, uint _score2, string _category, uint8 _tournamentID) external onlyOwner{
+    function play(address _player1, uint _score1, address _player2, uint _score2, string memory _category, uint8 _tournamentID) external onlyOwner{
         require(ylProxy.totalStakedAmount(_player1, address(ylERC20)) >= tokensNeededPlay, "You need to stake more YLT");
         require(ylProxy.totalStakedAmount(_player2, address(ylERC20)) >= tokensNeededPlay, "You need to stake more YLT");
         require(YLVault(vaultAddress).checkElegible(_player1, _category) == true, "You are not elegible.");
         require(YLVault(vaultAddress).checkElegible(_player2, _category) == true, "You are not elegible.");
 
-        // If we add the tournament ID, it will check if they paid for the tournament feee
+        // If we add the tournament ID, it will check if they paid for the tournament fee. The first tournament ID must be 1.
         if(_tournamentID > 0) {
             require(feePaid[_tournamentID][_player1], "Player 1 did not pay the tournament fee.");
             require(feePaid[_tournamentID][_player2], "Player 2 did not pay the tournament fee.");
@@ -138,18 +138,13 @@ contract ContestOnlyGame {
         return true;
     }
 
-    // Getter for the minimum staked YLT staked.
-    function getMinStakedPlay() public view returns(uint){
-        return tokensNeededPlay;
-    }
-
     // Getter for TournamentFee to access the tournament.
     function getTournamentFee(uint _tournamentID) external view returns(uint){
         return tournamentFee[_tournamentID];
     }
 
     // Getter for Match details.
-    function getMatch(string _category, uint _matchId) public view returns(Match calldata){
+    function getMatch(string calldata _category, uint _matchId) public view returns(Match memory){
         return matchIndex[_category][_matchId];
     }
 
