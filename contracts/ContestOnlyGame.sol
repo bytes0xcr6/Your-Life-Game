@@ -149,7 +149,7 @@ contract ContestOnlyGame {
     }
 
     // Getter for Match details.
-    function getMatch(string _category, uint _matchId) public view returns(Match memory){
+    function getMatch(string _category, uint _matchId) public view returns(Match calldata){
         return matchIndex[_category][_matchId];
     }
 
