@@ -11,12 +11,12 @@ import "./Vault.sol";
 
 
 contract YLVault is Ownable{
-    IERC721 private ylNFTERC721;
-    IERC1155 private ylNFTERC1155;
-    IERC20 private ylERC20;
-    YLNFT private ylNFT;
-    address private treasuryAddress;
-    uint revertNFTComision;
+    IERC721 public ylNFTERC721;
+    IERC1155 public ylNFTERC1155;
+    IERC20 public ylERC20;
+    YLNFT public ylNFT;
+    address public treasuryAddress;
+    uint public revertNFTComision;
 
     // player address => subStorageVault address
     mapping(address => address) public vaultContract;
@@ -102,13 +102,7 @@ contract YLVault is Ownable{
     }
 
     // Check if the wallet is elegible to play.
-    function checkElegible(address _gamer, string memory _category) external view returns(bool){
+    function checkElegible(address _gamer, string calldata _category) external view returns(bool){
         return elegibleGamer[_gamer][_category];
     }
-
-    // Check the Reverted Wallet Fee.
-    function checkRevertedToWalletFee() external view returns(uint){
-        return revertNFTComision;
-    }
 }
-
