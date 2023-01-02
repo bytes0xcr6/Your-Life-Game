@@ -92,3 +92,13 @@ Constructor modified to add YLT address.
 # ERC1155 
 
 Constructor modified to add Market 1155 contract by function.
+
+# ERC721 
+
+Constructor modified to add Market 721 contract by function.
+added function to add the address of the second market place contract.
+
+# Auction contract 
+
+Constructor modified to add 2 marketplace for ERC721
+functions adjusted to select the contract that includes the function.
