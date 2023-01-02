@@ -72,8 +72,8 @@ contract ContestOnlyGame {
         
         address winner;
         address looser;
-        uint _randomCoheficient1; //= getRandomNum();
-        uint _randomCoheficient2; //= getRandomNum();
+        uint _randomCoheficient1 = uint(keccak256(abi.encodePacked(block.timestamp, block.difficulty, _player1)));
+        uint _randomCoheficient2 = uint(keccak256(abi.encodePacked(block.timestamp, block.difficulty, _player2)));
 
         if((_score1 + _randomCoheficient1) > (_score2 + _randomCoheficient2)) {
             winner = _player1;
@@ -89,8 +89,8 @@ contract ContestOnlyGame {
         } else {
             winner = address(0); // Draw
             looser = address(0); 
-            resultsPlayer[winner][3]++; //Increment wins
-            resultsPlayer[looser][3]++; // Increment looses
+            resultsPlayer[winner][3]++; //Increment draws
+            resultsPlayer[looser][3]++; // Increment draws
         }
 
         Match memory _match = Match (
@@ -103,11 +103,6 @@ contract ContestOnlyGame {
         emit MatchFinished(winner, _category, looser, matchCounter[_category], block.timestamp);
         matchCounter[_category]++;
     }
-
-    // //CHAINLINK. Generates 2 randomNumbers to increment each of the players final score. CHAINLINK
-    // function getRandomNum() {
-
-    // }
 
     // Pay YLT fee to be elegible for a tournament, passing the tournament ID.
     function payTournamentFee(uint8 _tournamentID) external {
