@@ -60,11 +60,10 @@ contract YLNFT1155 is ERC1155URIStorage, Ownable, ReentrancyGuard {
         uint256 amount
     );
 
-    constructor(string memory _yluri) ERC1155(_yluri) {
+    constructor(string memory _yluri, IProxy _proxy) ERC1155(_yluri) {
         _baseURI = _yluri;
         _ylnft1155Owner = payable(msg.sender);
-        marketAddress = 0xDAF325F0988c1d061a7a2542daDF232Dac476B1d;
-        proxy = IProxy(0xdd28968555A8d9466e18fAEB3eD68847A9BEB0d1);
+        proxy = _proxy;
     }
 
     function setProxyAddress(address _proxyAddress)
