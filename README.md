@@ -87,4 +87,8 @@ P2E Sport Game
 
 # ProxyYLT 
 
-Constructor modified to add YLT address 
+Constructor modified to add YLT address.
+
+# ERC1155 
+
+Constructor modified to add Market 1155 contract by function.
