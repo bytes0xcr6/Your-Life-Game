@@ -14,7 +14,6 @@ contract YLVault is Ownable{
     IERC721 public ylNFTERC721;
     IERC1155 public ylNFTERC1155;
     IERC20 public ylERC20;
-    YLNFT public ylNFT;
     address public treasuryAddress;
     uint public revertNFTComision;
 
@@ -37,7 +36,6 @@ contract YLVault is Ownable{
         ylNFTERC721 = _ylNFTERC721;
         ylNFTERC1155 = _ylNFTERC1155;
         ylERC20 = _ylERC20;
-        ylNFT = _ylNFTERC721;
         treasuryAddress = owner();
     }
 
@@ -45,12 +43,12 @@ contract YLVault is Ownable{
         require(_tokenIds.length > 0, "It mustn't 0");
 
         if(vaultContract[_gamer] == address(0x0)) {
-            Vault newVault = new Vault(ylNFTERC721, ylNFTERC1155, ylERC20, ylNFT, treasuryAddress);
+            Vault newVault = new Vault(address(ylNFTERC721), ylNFTERC1155, ylERC20, treasuryAddress);
             vaultContract[_gamer] = address(newVault);
         }
         for(uint i = 0; i < _tokenIds.length; i++)
         {
-            string memory _category = ylNFT.getCategory(_tokenIds[i]);
+            string memory _category = YLNFT(address(ylNFTERC721)).getCategory(_tokenIds[i]);
             ylNFTERC721.transferFrom(msg.sender, vaultContract[_gamer], _tokenIds[i]);
             NFTsCounter[_gamer][_category] += _tokenIds.length; //Update counter for each Sport.
         // Update elegibility
@@ -66,7 +64,7 @@ contract YLVault is Ownable{
         require(_amount > 0, "It mustn't 0");
     
         if(vaultContract[_gamer] == address(0x0)) {
-            Vault newVault = new Vault(ylNFTERC721, ylNFTERC1155, ylERC20, ylNFT, treasuryAddress);
+            Vault newVault = new Vault((address(ylNFTERC721)), ylNFTERC1155, ylERC20, treasuryAddress);
             vaultContract[_gamer] = address(newVault);
         }
         
@@ -106,3 +104,4 @@ contract YLVault is Ownable{
         return elegibleGamer[_gamer][_category];
     }
 }
+
