@@ -30,7 +30,8 @@ contract YLNFT is
     ReentrancyGuard
 {
     address payable _ylnft721Owner;
-    address public marketAddress;
+    address public marketAddress1;
+    address public marketAddress2;
     IProxy public proxy;
     Counters.Counter private _tokenIds;
     bool public yltpause;
@@ -65,13 +66,12 @@ contract YLNFT is
     );
     event Transfer721to(address admin, address recipient, uint256 tokenId);
 
-    constructor()
+    constructor(address _proxy)
         ERC721("YourLifeGame NFT", "YLNFT")
         EIP712("LazyNFT-Voucher", "1")
     {
         _ylnft721Owner = payable(msg.sender);
-        marketAddress = 0xDAF325F0988c1d061a7a2542daDF232Dac476B1d;
-        proxy = IProxy(0xdd28968555A8d9466e18fAEB3eD68847A9BEB0d1);
+        proxy = IProxy(_proxy);
         _setupRole(MINTER_ROLE, _ylnft721Owner);
     }
 
@@ -84,12 +84,21 @@ contract YLNFT is
         return true;
     }
 
-    function setMarketAddress(address _marketAddress)
+    function setMarketAddress1(address _marketAddress)
         public
         onlyOwner
         returns (bool)
     {
-        marketAddress = _marketAddress;
+        marketAddress1 = _marketAddress;
+        return true;
+    }
+
+    function setMarketAddress1(address _marketAddress)
+        public
+        onlyOwner
+        returns (bool)
+    {
+        marketAddress2 = _marketAddress;
         return true;
     }
 
