@@ -104,4 +104,3 @@ contract YLVault is Ownable{
         return elegibleGamer[_gamer][_category];
     }
 }
-
