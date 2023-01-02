@@ -14,10 +14,10 @@ contract YLProxy is ReentrancyGuard, Ownable {
 
     IERC20 public ylt;
 
-    constructor() {
+    constructor(address _yltAddress) {
         _ylOwner = msg.sender;
         sufficientstakeamount = 100 * 10**18;
-        ylt = IERC20(0xFaB9B29aA4DbBAbeB5378645f556B3627F9f3ED2);
+        ylt = IERC20(_yltAddress);
     }
 
     mapping(address => mapping(address => uint256)) public stakedAmount;
