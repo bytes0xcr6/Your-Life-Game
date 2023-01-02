@@ -1,5 +1,5 @@
 //SPDX-License-Identifier: Unlicense
-pragma solidity ^0.8.9;
+pragma solidity 0.8.17;
 
 import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 import "@openzeppelin/contracts/utils/Counters.sol";
@@ -11,7 +11,7 @@ import "./YLNFTMarketplace1.sol";
 import "./YLNFTMarketplace2.sol";
 
 
-contract Auction is ERC1155Holder, ReentrancyGuard, Ownable {
+contract Auction is ReentrancyGuard, Ownable {
     YLNFTMarketplace1 marketplaceContract1;
     YLNFTMarketplace2 marketplaceContract2;
 
@@ -52,8 +52,8 @@ contract Auction is ERC1155Holder, ReentrancyGuard, Ownable {
     constructor(IERC721 _ylnft721, IERC1155 _ylnft1155, address _marketplaceContract1, address _marketplaceContract2, address _ylt20) {
         ylnft721 = _ylnft721;
         ylnft1155 = _ylnft1155;
-        marketplaceContract1 = YLNFTMarketplace(_marketplaceContract1);
-        marketplaceContract2 = YLNFTMarketplace(_marketplaceContract2);
+        marketplaceContract1 = YLNFTMarketplace1(_marketplaceContract1);
+        marketplaceContract2 = YLNFTMarketplace2(_marketplaceContract2);
         ylt20 = IERC20(_ylt20);
     }
 
@@ -68,12 +68,12 @@ contract Auction is ERC1155Holder, ReentrancyGuard, Ownable {
     }
 
     function getMarketFee() public view returns (uint256) {
-        return marketplaceContract.marketfee();
+        return marketplaceContract2.marketfee();
     }
 
     //f.
     function MinterListNFT(uint256 _tokenId, uint256 _price, uint256 _amount, uint256 _limitPrice, uint256 _period, bool _isERC721) public returns(uint256) {
-        require(marketplaceContract.isMarketOwner() == true, "You aren't the owner of marketplace");
+        require(marketplaceContract2._marketplaceOwner() == msg.sender, "You aren't the owner of marketplace");
          
         if(_isERC721){
             require(ylnft721.ownerOf(_tokenId) == msg.sender, "You haven't this token");
@@ -211,7 +211,7 @@ contract Auction is ERC1155Holder, ReentrancyGuard, Ownable {
         require(idToAuctionItem[_auctionId].highestBidder == msg.sender, "The highest bidder can withdraw this token.");
 
         if(idToAuctionItem[_auctionId].owner == msg.sender) {
-            bool isTransferred = ylt20.transferFrom(msg.sender, address(this), marketplaceContract.marketfee());
+            bool isTransferred = ylt20.transferFrom(msg.sender, address(this), marketplaceContract2.marketfee());
             require(isTransferred, "Insufficient Fund.");
             if(_isERC721){
                 ylnft721.transferFrom(address(this), msg.sender, idToAuctionItem[_auctionId].tokenId);
@@ -222,7 +222,7 @@ contract Auction is ERC1155Holder, ReentrancyGuard, Ownable {
             idToAuctionItem[_auctionId].owner = msg.sender;
             emit BidNull(_auctionId, idToAuctionItem[_auctionId].tokenId, idToAuctionItem[_auctionId].amount, msg.sender, block.timestamp);
         } else {
-            bool isTransferred = ylt20.transferFrom(msg.sender, address(this), idToAuctionItem[_auctionId].highestBid + marketplaceContract.marketfee());
+            bool isTransferred = ylt20.transferFrom(msg.sender, address(this), idToAuctionItem[_auctionId].highestBid + marketplaceContract2.marketfee());
             require(isTransferred, "Insufficient Fund.");
             if(_isERC721)
                 ylnft721.transferFrom(address(this), msg.sender, idToAuctionItem[_auctionId].tokenId);
@@ -249,7 +249,7 @@ contract Auction is ERC1155Holder, ReentrancyGuard, Ownable {
     function withdrawNFTInstant(uint256 _auctionId, uint256 _amount, bool _isERC721) public nonReentrant {
         require(idToAuctionItem[_auctionId].owner != msg.sender, "You can't withdraw your NFT");
         require((ylnft721.ownerOf(idToAuctionItem[_auctionId].tokenId) == address(this)) || ylnft1155.balanceOf(address(this), idToAuctionItem[_auctionId].tokenId) >= idToAuctionItem[_auctionId].amount, "This token don't exist in market.");
-        bool isTransferred = ylt20.transferFrom(msg.sender, address(this), idToAuctionItem[_auctionId].highestBid + marketplaceContract.marketfee());
+        bool isTransferred = ylt20.transferFrom(msg.sender, address(this), idToAuctionItem[_auctionId].highestBid + marketplaceContract2.marketfee());
         require(isTransferred, "Insufficient Fund.");
         if(_isERC721)
             ylnft721.transferFrom(address(this), msg.sender, idToAuctionItem[_auctionId].tokenId);
@@ -295,7 +295,7 @@ contract Auction is ERC1155Holder, ReentrancyGuard, Ownable {
     }
 
     function withdrawToken(uint256 _amount) public nonReentrant {
-        require(marketplaceContract.isMarketOwner() == true, "You aren't the owner of marketplace");
+        require(marketplaceContract2._marketplaceOwner() == msg.sender, "You aren't the owner of marketplace");
         require(ylt20.balanceOf(address(this)) >= _amount, "insufficient fund");
         (bool sent) = ylt20.transfer(msg.sender, _amount);
         require(sent, "Failed to send token");
