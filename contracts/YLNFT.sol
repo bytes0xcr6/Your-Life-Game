@@ -20,6 +20,8 @@ interface IProxy {
     function isTransferAccount(address _address) external view returns (bool);
 
     function isPauseAccount(address _address) external view returns (bool);
+    
+    function getCategory(uint _tokenId) external view returns(string memory);
 }
 
 contract YLNFT is
@@ -66,40 +68,34 @@ contract YLNFT is
     );
     event Transfer721to(address admin, address recipient, uint256 tokenId);
 
-    constructor(address _proxy)
+    constructor(IProxy _proxy)
         ERC721("YourLifeGame NFT", "YLNFT")
         EIP712("LazyNFT-Voucher", "1")
     {
         _ylnft721Owner = payable(msg.sender);
-        proxy = IProxy(_proxy);
+        proxy = _proxy;
         _setupRole(MINTER_ROLE, _ylnft721Owner);
     }
 
     function setProxyAddress(address _proxyAddress)
         public
         onlyOwner
-        returns (bool)
     {
         proxy = IProxy(_proxyAddress);
-        return true;
     }
 
     function setMarketAddress1(address _marketAddress)
         public
         onlyOwner
-        returns (bool)
     {
         marketAddress1 = _marketAddress;
-        return true;
     }
 
-    function setMarketAddress1(address _marketAddress)
+    function setMarketAddress2(address _marketAddress)
         public
         onlyOwner
-        returns (bool)
     {
         marketAddress2 = _marketAddress;
-        return true;
     }
 
     function setCategoryAmount(
@@ -124,8 +120,7 @@ contract YLNFT is
         view
         returns (uint256)
     {
-        uint256 _cnt = categoryCount[_sport][_cnft];
-        return _cnt;
+        return categoryCount[_sport][_cnft];
     }
 
     function getCategoryAmount(string memory _sport, string memory _cnft)
@@ -133,8 +128,7 @@ contract YLNFT is
         view
         returns (uint256)
     {
-        uint256 _amount = categoryAmount[_sport][_cnft];
-        return _amount;
+        return categoryAmount[_sport][_cnft];
     }
 
     function setPauseContract(bool _yltpause) public returns (bool) {
@@ -196,7 +190,8 @@ contract YLNFT is
         uint256 newTokenId = getCurrentTokenId();
         _mint(msg.sender, newTokenId);
         _setTokenURI(newTokenId, tokenURI);
-        setApprovalForAll(marketAddress, true);
+        setApprovalForAll(marketAddress1, true);
+        setApprovalForAll(marketAddress2, true);
         setApprovalForAll(address(this), true);
 
         categoryCount[_sport][_cnft] = categoryCount[_sport][_cnft] + 1;
@@ -211,8 +206,7 @@ contract YLNFT is
     }
 
     function getCurrentTokenId() public view returns (uint256) {
-        uint256 cId = Counters.current(_tokenIds);
-        return cId;
+        return Counters.current(_tokenIds);
     }
 
     function incrementTokenId() private {
