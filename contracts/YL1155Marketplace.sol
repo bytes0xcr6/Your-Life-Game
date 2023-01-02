@@ -16,7 +16,7 @@ interface IProxy{
     function isSuperAdmin(address _address) external view returns(bool);
 }
 
-contract YL1155Marketplace2 is IERC1155Receiver,ReentrancyGuard{
+contract YL1155Marketplace is IERC1155Receiver,ReentrancyGuard{
     using Counters for Counters.Counter;
     using EnumerableSet for EnumerableSet.UintSet;
     
