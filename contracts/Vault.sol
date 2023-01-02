@@ -33,7 +33,7 @@ contract Vault {
     function revertNftFromVaultToWalletERC721(uint256[] memory _tokenIds) external {
         require(_tokenIds.length > 0, "It mustn't 0");
         //Get fees from the YLVault contract and multiply for the tokens length.
-        uint256 _fee = YLVault(treasuryAddress).checkRevertedToWalletFee() * _tokenIds.length;
+        uint256 _fee = YLVault(treasuryAddress).revertNFTComision() * _tokenIds.length;
         require(ylERC20.balanceOf(msg.sender) >= _fee, "Insufficient balance for fee");
         //Update counter for each Sport.
         ylERC20.transferFrom(msg.sender, treasuryAddress, _fee);
@@ -49,7 +49,7 @@ contract Vault {
     function revertNftFromVaultToWalletERC1155(uint256 _tokenId, string memory _category, uint256 _amount) external {
         require(_amount > 0, "It mustn't 0");
         //Get fees from the YLVault contract and multiply for the tokens length.
-        uint256 _fee = YLVault(treasuryAddress).checkRevertedToWalletFee() * _amount;
+        uint256 _fee = YLVault(treasuryAddress).revertNFTComision() * _amount;
         require(ylERC20.balanceOf(msg.sender) >= _fee, "Insufficient balance for fee");
         //Update counter for each Sport.
         YLVault(treasuryAddress).updateCounter(msg.sender, _category, _amount);
