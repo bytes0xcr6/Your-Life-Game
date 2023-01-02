@@ -2,7 +2,7 @@
  *Submitted for verification at BscScan.com on 2022-01-27
  */
 
-pragma solidity ^0.8.9;
+pragma solidity 0.8.17;
 
 // ----------------------------------------------------------------------------
 // YLT main contract (2022)
