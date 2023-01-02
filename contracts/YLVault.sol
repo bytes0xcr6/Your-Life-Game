@@ -33,11 +33,11 @@ contract YLVault is Ownable{
     event DepositedNftFromWalletToVaultERC721(address FromAddress, address GamerAddress, address VaultAddress, uint256 TokenId, uint256 DepositedTime);
     event DepositedNftFromWalletToVaultERC1155(address FromAddress, address GamerAddress, address VaultAddress, uint256 TokenId, uint256 Amount, uint256 DepositedTime);
 
-    constructor(IERC721 _ylNFTERC721, IERC1155 _ylNFTERC1155, IERC20 _ylERC20, YLNFT _ylNFT) {
+    constructor(IERC721 _ylNFTERC721, IERC1155 _ylNFTERC1155, IERC20 _ylERC20) {
         ylNFTERC721 = _ylNFTERC721;
         ylNFTERC1155 = _ylNFTERC1155;
         ylERC20 = _ylERC20;
-        ylNFT = _ylNFT;
+        ylNFT = _ylNFTERC721;
         treasuryAddress = owner();
     }
 
