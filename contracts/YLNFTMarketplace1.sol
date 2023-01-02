@@ -1,5 +1,5 @@
 //SPDX-License-Identifier: Unlicense
-pragma solidity ^0.8.9;
+pragma solidity 0.8.17;
 
 import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 import "@openzeppelin/contracts/utils/Counters.sol";
@@ -25,7 +25,7 @@ contract YLNFTMarketplace1 is ReentrancyGuard, Ownable {
     IProxy public proxy;
     IERC721 public ylnft;
     
-    address private nftmarket2 = 0x98d90a8666E02f5f0D0e4B48922EDbe7b0a810db;
+    YLNFTMarketplace2 private nftmarket2;
     enum State { Active, Inactive, Release}
 
     struct MarketItem {
@@ -37,19 +37,15 @@ contract YLNFTMarketplace1 is ReentrancyGuard, Ownable {
         State state;
     }
 
-    event AdminListedNFT(address user, uint256 tokenId, uint256 price, uint256 timestamp);
-    event UserlistedNFTtoMarket(address user, uint256 tokenId, uint256 price, address market, uint256 timestamp);
-    event EscrowTransferFundsToSeller(address market, uint256 price, address user); //???
+    // event AdminListedNFT(address user, uint256 tokenId, uint256 price, uint256 timestamp);
+    // event UserlistedNFTtoMarket(address user, uint256 tokenId, uint256 price, address market, uint256 timestamp);
     event WithdrawNFTfromMarkettoWallet(uint256 tokenId, address user, uint256 commission, uint256 timestamp);
     event DepositNFTfromWallettoMarket(uint256 tokenId, address user, uint256 commission, uint256 timestamp);
-    event TransferedNFTfromMarkettoVault(uint256 tokenId, address vault, uint256 timestamp);
-    event TransferedNFTfromVaulttoMarket(uint256 tokenId, address vault, uint256 timestamp);
+    // event TransferedNFTfromMarkettoVault(uint256 tokenId, address vault, uint256 timestamp);
+    // event TransferedNFTfromVaulttoMarket(uint256 tokenId, address vault, uint256 timestamp);
     event AdminApprovalNFTwithdrawtoWallet(address admin, uint256 tokenId, address user, uint256 commission, uint256 timestamp);
     event DepositNFTFromWallettoMarketApproval(uint256 tokenId, address user, uint256 commission, address admin, uint256 timestamp);
     event DepositNFTFromWallettoTeamsApproval(uint256 tokenId, address user, uint256 commission, address admin, uint256 timestamp);
-    event RevertDepositFromWalletToTeams(uint256 tokenId, address user, address admin, uint256 timestamp);
-    event RevertDepositFromWalletToMarket(uint256 tokenId, address user, address admin, uint256 timestamp);
-    event MarketPerCommissionSet(address admin, uint256 commission, uint256 timestamp);
 
     mapping(uint256 => MarketItem) private idToMarketItem;
     mapping(address => mapping(uint256 => bool)) depositUsers;
@@ -61,9 +57,10 @@ contract YLNFTMarketplace1 is ReentrancyGuard, Ownable {
         _;
     }
 
-    constructor(IERC721 _ylnft, IProxy _proxy) {
+    constructor(IERC721 _ylnft, IProxy _proxy, YLNFTMarketplace2 _marketplace2) {
         ylnft = _ylnft;
         proxy = _proxy;
+        nftmarket2 = _marketplace2;
     }
 
     //get itemId
@@ -110,12 +107,12 @@ contract YLNFTMarketplace1 is ReentrancyGuard, Ownable {
             idToMarketItem[_itemId].price = _price;
         }
 
-        emit AdminListedNFT(msg.sender, _tokenId, _price, block.timestamp);
+        // emit AdminListedNFT(msg.sender, _tokenId, _price, block.timestamp);
         return _itemId;
     }
 
     //b. Buyer listed NFT to Marketplace
-    function buyerListedNFT(uint256 _tokenId, uint256 _price) public payable returns(uint256) {
+    function buyerListedNFT(uint256 _tokenId, uint256 _price) public payable{
         require(ylnft.ownerOf(_tokenId) == msg.sender, "User haven't this token ID.");
         require(depositUsers[msg.sender][_tokenId] == true, "This token has not been approved by administrator.");
         require(ylnft.getApproved(_tokenId) == address(this), "NFT must be approved to market");
@@ -149,8 +146,7 @@ contract YLNFTMarketplace1 is ReentrancyGuard, Ownable {
             idToMarketItem[_itemId].price = _price;
         }
 
-        emit UserlistedNFTtoMarket(msg.sender, _tokenId, _price, address(this), block.timestamp);
-        return _itemId;
+        // emit UserlistedNFTtoMarket(msg.sender, _tokenId, _price, address(this), block.timestamp);
     }
 
     //i. withdraw NFT
@@ -208,11 +204,9 @@ contract YLNFTMarketplace1 is ReentrancyGuard, Ownable {
     function depositApproval(address _user, uint256 _tokenId, bool _flag) public ylOwners {
         require(ylnft.ownerOf(_tokenId) == _user, "The User aren't owner of this token.");
         depositUsers[_user][_tokenId] = _flag;
-        if(_flag == true) {
-            emit DepositNFTFromWallettoMarketApproval(_tokenId, _user, YLNFTMarketplace2(nftmarket2).getMarketFee(), msg.sender, block.timestamp);
-        } else {
-            emit RevertDepositFromWalletToMarket(_tokenId, _user, msg.sender, block.timestamp);
-        }
+
+        emit DepositNFTFromWallettoMarketApproval(_tokenId, _user, YLNFTMarketplace2(nftmarket2).getMarketFee(), msg.sender, block.timestamp);
+
     }
 
     // withdraw approval from Admin
@@ -220,13 +214,11 @@ contract YLNFTMarketplace1 is ReentrancyGuard, Ownable {
         require(idToMarketItem[_itemId].seller == _user, "You don't owner of this NFT.");
         require(ylnft.ownerOf(idToMarketItem[_itemId].tokenId) == address(this), "This token don't exist in market.");
         withdrawUsers[_user][_itemId] = _flag;
-        if(_flag == true) {
             emit AdminApprovalNFTwithdrawtoWallet(msg.sender, idToMarketItem[_itemId].tokenId, _user, YLNFTMarketplace2(nftmarket2).getMarketFee(), block.timestamp);
-        }
     }
 
     //k. To transfer the NFTs to his team(vault)
-    function transferToVault(uint256 _itemId, address _vault) public nonReentrant returns(uint256) {
+    function transferToVault(uint256 _itemId, address _vault) public nonReentrant {
         uint256 _tokenId = idToMarketItem[_itemId].tokenId;
         require(ylnft.ownerOf(_tokenId) == address(this), "This token didn't list on marketplace");
         require(idToMarketItem[_itemId].seller == msg.sender, "You don't owner of this token");
@@ -236,8 +228,7 @@ contract YLNFTMarketplace1 is ReentrancyGuard, Ownable {
         idToMarketItem[_itemId].state = State.Release;
         idToMarketItem[_itemId].owner = _vault;
 
-        emit TransferedNFTfromMarkettoVault(_tokenId, _vault, block.timestamp);
-        return _tokenId;
+        // emit TransferedNFTfromMarkettoVault(_tokenId, _vault, block.timestamp);
     }
 
     // team approval
@@ -245,11 +236,9 @@ contract YLNFTMarketplace1 is ReentrancyGuard, Ownable {
         require(ylnft.ownerOf(idToMarketItem[_itemId].tokenId) == address(this), "This token don't exist in market");
         require(idToMarketItem[_itemId].seller == _user, "The user isn't the owner of token");
         depositTeamUsers[_user][_itemId] = _flag;
-        if(_flag == true) {
-            emit DepositNFTFromWallettoTeamsApproval(idToMarketItem[_itemId].tokenId, _user, YLNFTMarketplace2(nftmarket2).getMarketFee(), msg.sender, block.timestamp);
-        } else {
-            emit RevertDepositFromWalletToTeams(idToMarketItem[_itemId].tokenId, _user, msg.sender, block.timestamp);
-        }
+
+        emit DepositNFTFromWallettoTeamsApproval(idToMarketItem[_itemId].tokenId, _user, YLNFTMarketplace2(nftmarket2).getMarketFee(), msg.sender, block.timestamp);
+
     }
 
     //l. transfer from vault to marketplace
@@ -283,7 +272,7 @@ contract YLNFTMarketplace1 is ReentrancyGuard, Ownable {
             idToMarketItem[_itemId].seller = msg.sender;
         }
 
-        emit TransferedNFTfromVaulttoMarket(_tokenId, _vault, block.timestamp);
+        // emit TransferedNFTfromVaulttoMarket(_tokenId, _vault, block.timestamp);
     }
 
     // Marketplace Listed unpaused NFTs
