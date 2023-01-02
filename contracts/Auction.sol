@@ -7,10 +7,15 @@ import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/token/ERC721/IERC721.sol";
 import "@openzeppelin/contracts/token/ERC1155/IERC1155.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-import "./YLNFTMarketplace.sol";
+import "./YLNFTMarketplace1.sol";
+import "./YLNFTMarketplace2.sol";
+
 
 contract Auction is ERC1155Holder, ReentrancyGuard, Ownable {
-    YLNFTMarketplace marketplaceContract;
+    YLNFTMarketplace1 marketplaceContract1;
+    YLNFTMarketplace2 marketplaceContract2;
+
+
     using Counters for Counters.Counter;
     Counters.Counter private _auctionIds;
 
@@ -44,10 +49,11 @@ contract Auction is ERC1155Holder, ReentrancyGuard, Ownable {
 
     mapping(uint256 => AuctionItem) private idToAuctionItem;
 
-    constructor(IERC721 _ylnft721, IERC1155 _ylnft1155, address _marketplaceContract, address _ylt20) {
+    constructor(IERC721 _ylnft721, IERC1155 _ylnft1155, address _marketplaceContract1, address _marketplaceContract2, address _ylt20) {
         ylnft721 = _ylnft721;
         ylnft1155 = _ylnft1155;
-        marketplaceContract = YLNFTMarketplace(_marketplaceContract);
+        marketplaceContract1 = YLNFTMarketplace(_marketplaceContract1);
+        marketplaceContract2 = YLNFTMarketplace(_marketplaceContract2);
         ylt20 = IERC20(_ylt20);
     }
 
