@@ -9,7 +9,7 @@ import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "./YLVault.sol";
 import "./YLProxy.sol";
 
-contract ContestOnlyGame {
+contract ContestGame {
     IERC721 public ylNFTERC721;
     IERC1155 public ylNFTERC1155;
     IERC20 public ylERC20;
