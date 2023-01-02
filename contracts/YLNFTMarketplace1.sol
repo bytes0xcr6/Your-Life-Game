@@ -340,7 +340,7 @@ contract YLNFTMarketplace1 is ReentrancyGuard, Ownable {
             if( idToMarketItem[i].state == State.Inactive 
                 && idToMarketItem[i].seller == msg.sender
                 && idToMarketItem[i].owner == address(this)
-                && (ylnft721.getApproved(idToMarketItem[i].tokenId) == address(this) || ylnft1155.isApprovedForAll(idToMarketItem[i].seller, address(this)))) {
+                && (ylnft.getApproved(idToMarketItem[i].tokenId) == address(this))) {
                 
                 itemCount++;
             }
@@ -352,7 +352,7 @@ contract YLNFTMarketplace1 is ReentrancyGuard, Ownable {
             if( idToMarketItem[i].state == State.Inactive 
                 && idToMarketItem[i].seller == msg.sender
                 && idToMarketItem[i].owner == address(this)
-                && (ylnft721.getApproved(idToMarketItem[i].tokenId) == address(this) || ylnft1155.isApprovedForAll(idToMarketItem[i].seller, address(this)))) {
+                && (ylnft.getApproved(idToMarketItem[i].tokenId) == address(this))) {
                 
                 items[index] = idToMarketItem[i];
                 index++;
