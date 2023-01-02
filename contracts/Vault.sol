@@ -22,11 +22,11 @@ contract Vault {
     event BoosterBurned(address VaultAddress, address GamerAddress, uint256 BoosterID, uint256 Amount, uint256 BurnedTime);
     event feePerNFTUpdated(uint NewFee, uint UpdatedTime);
 
-    constructor(IERC721 _ylNFTERC721, IERC1155 _ylNFTERC1155, IERC20 _ylERC20, address _treasuryAddress) {
-        ylNFTERC721 = _ylNFTERC721;
+    constructor(address _ylNFTERC721, IERC1155 _ylNFTERC1155, IERC20 _ylERC20, address _treasuryAddress) {
+        ylNFTERC721 = IERC721(_ylNFTERC721);
         ylNFTERC1155 = _ylNFTERC1155;
         ylERC20 = _ylERC20;
-        ylNFT = _ylNFTERC721;
+        ylNFT = YLNFT(_ylNFTERC721);
         treasuryAddress = _treasuryAddress;
     }
 
