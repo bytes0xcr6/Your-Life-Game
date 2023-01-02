@@ -102,3 +102,10 @@ added function to add the address of the second market place contract.
 
 Constructor modified to add 2 marketplace for ERC721
 functions adjusted to select the contract that includes the function.
+
+
+# Market place NFT 1
+
+Function fetchedMyPausedItems adjusted, as it was pointing to the ERC1155 too.
+Optimized, as it was passing the allowed gas! Warning: Contract code size is 25317 bytes and exceeds 24576 bytes (a limit introduced in Spurious Dragon). This contract may not be deployable on Mainnet. Consider enabling the optimizer (with a low "runs" value!), turning off revert strings, or using libraries.
+  --> contracts/YLNFTMarketplace1.sol:21:1:
