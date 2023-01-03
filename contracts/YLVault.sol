@@ -46,6 +46,8 @@ contract YLVault is Ownable{
         }
         for(uint i = 0; i < _tokenIds.length; i++)
         {
+        require(ylNFTERC721.ownerOf(_tokenIds[i]) == msg.sender, "You do not own this NFTs");
+
             string memory _category = YLNFT(address(ylNFTERC721)).getCategory(_tokenIds[i]);
             ylNFTERC721.transferFrom(msg.sender, vaultContract[_gamer], _tokenIds[i]);
             NFTsCounter[_gamer][_category] += _tokenIds.length; //Update counter for each Sport.
@@ -61,6 +63,7 @@ contract YLVault is Ownable{
     // Transfers ERC1155 (Boosters) from Wallet to Personal Vault.
     function storeNftFromWalletToVaultERC1155(address _gamer, uint256 _tokenId, uint256 _amount) external {
         require(_amount > 0, "It mustn't 0");
+        require(ylNFTERC1155.balanceOf(msg.sender, _tokenId) <= _amount, "You need more Boosters");
     
         if(vaultContract[_gamer] == address(0x0)) {
             Vault newVault = new Vault((address(ylNFTERC721)), ylNFTERC1155, ylERC20, treasuryAddress);
