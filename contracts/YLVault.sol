@@ -9,7 +9,6 @@ import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "./YLNFT.sol";
 import "./Vault.sol";
 
-
 contract YLVault is Ownable{
     IERC721 public ylNFTERC721;
     IERC1155 public ylNFTERC1155;
@@ -21,8 +20,6 @@ contract YLVault is Ownable{
     mapping(address => address) public vaultContract;
     // address => SportCategory => amountNFTs Total amount of NFTs in substorage per address and Sport.  1- Footbal, 2- Basketball, 3- Rugby (Example)
     mapping(address => mapping (string => uint)) public NFTsCounter; 
-    // // SportCategory => Number of players ready to play. 
-    // mapping(uint8 => uint) public playersElegibles;
     //address => SportCategory => elegible. Gamer is elegible to play, as he added at least 5 footbal players (Example)
     mapping(address => mapping (string => bool)) public elegibleGamer; 
     // SportCategory => playersNeeded. Example: Footbal: 11;
@@ -39,6 +36,7 @@ contract YLVault is Ownable{
         treasuryAddress = owner();
     }
 
+    // Transfers ERC721 (NFT) from Wallet to Personal Vault.
     function storeNftFromWalletToVaultERC721(address _gamer, uint256[] memory _tokenIds) external {
         require(_tokenIds.length > 0, "It mustn't 0");
 
@@ -60,6 +58,7 @@ contract YLVault is Ownable{
 
     }
 
+    // Transfers ERC1155 (Boosters) from Wallet to Personal Vault.
     function storeNftFromWalletToVaultERC1155(address _gamer, uint256 _tokenId, uint256 _amount) external {
         require(_amount > 0, "It mustn't 0");
     
