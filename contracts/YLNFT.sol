@@ -181,7 +181,7 @@ contract YLNFT is
             "you can't mint YLT NFT, please contact the Admin"
         );
         require(
-            categoryAmount[_sport][_cnft] > categoryCount[_sport][_cnft],
+            categoryAmount[_sport][_cnft] >= (categoryCount[_sport][_cnft]) + 1,
             " Overflow! Amount of NFT category"
         );
         require(getPauseContract() == false, "NFT721 Contract was paused!");
@@ -194,7 +194,7 @@ contract YLNFT is
         setApprovalForAll(marketAddress2, true);
         setApprovalForAll(address(this), true);
 
-        categoryCount[_sport][_cnft] = categoryCount[_sport][_cnft] + 1;
+        categoryCount[_sport][_cnft] += 1;
 
         uint256 gasUsed = startGas - gasleft();
 
@@ -251,7 +251,7 @@ contract YLNFT is
         string memory _cnft
     ) public payable returns (uint256) {
         require(
-            categoryAmount[_sport][_cnft] > categoryCount[_sport][_cnft],
+            categoryAmount[_sport][_cnft] >= (categoryCount[_sport][_cnft]) + 1,
             " Overflow! Amount of NFT category"
         );
         require(getPauseContract() == false, "NFT721 Contract was paused!");
@@ -270,7 +270,7 @@ contract YLNFT is
         _transfer(_ylnft721Owner, msg.sender, newTokenId);
         _ylnft721Owner.transfer(msg.value);
 
-        categoryCount[_sport][_cnft] = categoryCount[_sport][_cnft] + 1;
+        categoryCount[_sport][_cnft] += 1;
 
         // return voucher.tokenId;
         return newTokenId;
