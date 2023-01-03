@@ -1,5 +1,5 @@
 //SPDX-License-Identifier: UNLICENSED
-pragma solidity ^0.8.9;
+pragma solidity 0.8.17;
 // pragma abicoder v2;
 
 import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
@@ -100,10 +100,12 @@ contract YL1155Marketplace is IERC1155Receiver,ReentrancyGuard{
     mapping(uint256 => bool) public pauseStatus;
 
     function setVaultAddress(address _vaultaddress) public{
+        require( proxy.isSuperAdmin(msg.sender) == true,'You are not superadmin');
         vaultaddress=_vaultaddress;
     }
 
     function setComission(uint256 _comission) public{
+        require( proxy.isSuperAdmin(msg.sender) == true,'You are not superadmin');
         comission=_comission;
         emit MarketCommissionSet1155(msg.sender,_comission,block.timestamp);
     }
