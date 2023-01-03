@@ -1,5 +1,5 @@
 //SPDX-License-Identifier: Unlicense
-pragma solidity ^0.8.9;
+pragma solidity 0.8.17;
 
 import "@openzeppelin/contracts/utils/Counters.sol";
 import "@openzeppelin/contracts/token/ERC1155/ERC1155.sol";
@@ -22,6 +22,7 @@ contract YLNFT1155 is ERC1155URIStorage, Ownable, ReentrancyGuard {
     string public _baseURI;
     address public _ylnft1155Owner;
     address public marketAddress;
+    address public ylVault;
     IProxy public proxy;
     Counters.Counter private _newtokenId;
     bool public yltpause;
@@ -81,6 +82,15 @@ contract YLNFT1155 is ERC1155URIStorage, Ownable, ReentrancyGuard {
         returns (bool)
     {
         marketAddress = _marketAddress;
+        return true;
+    }
+
+    function setYLVaultAddress(address _ylVault)
+        public
+        onlyOwner
+        returns (bool)
+    {
+        ylVault = _ylVault;
         return true;
     }
 
@@ -174,6 +184,7 @@ contract YLNFT1155 is ERC1155URIStorage, Ownable, ReentrancyGuard {
         _setURI(newTokenId, _tokenURI);
 
         setApprovalForAll(marketAddress, true);
+        setApprovalForAll(ylVault, true);
         setApprovalForAll(address(this), true);
         categoryCount[_sport][_cnft] += _amount;
 
