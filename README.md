@@ -117,6 +117,7 @@ and there were some unused events that I removed too MarketPerCommissionSet(), E
 
 # Market place ERC1155
 
-Fixed functions changePrice() & buyAdminListedNFT() & buyUserListedNFT(), adminUnlistedNFT(), finishAuction(), auctionInfo(), onERC1155Received(), onERC1155BatchReceived(), supportsInterface(). setVaultAddress() and setVaultAddress() without owner restriction.
+Optimized and toggle funcion created for: adminPauseUnpause(). Removed his events.
 
-The contract was not finished, I had to finish some functions onERC1155BatchReceived(), onERC1155Received(), supportsInterface()
+NOT DONE (I THINK): 
+Fixed functions changePrice() & buyAdminListedNFT() & buyUserListedNFT(), adminUnlistedNFT(), finishAuction(), auctionInfo(), onERC1155Received(), onERC1155BatchReceived(), supportsInterface(). setVaultAddress() and setVaultAddress() without owner restriction.
