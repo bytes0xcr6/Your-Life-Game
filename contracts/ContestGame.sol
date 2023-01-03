@@ -17,7 +17,6 @@ contract ContestGame {
     YLVault public vaultAddress;
     address public treasuryAddress;
     uint public tokensNeededPlay;
-    // uint8 private dailyMatchs;
 
     /// @dev Match struct to store the match info
     struct Match {
@@ -36,8 +35,6 @@ contract ContestGame {
     mapping(uint => mapping(address => bool)) feePaid;
     // Tournament ID => tournament Fee
     mapping(uint => uint) tournamentFee;
-    // // Track tournament is not filled to access
-    // mapping() playerTournament;
 
     event MatchFinished(address Winner, string Category, address Looser, uint MatchID, uint SettedTime);
     event TournamentCommissionSetted(uint SettedFee, uint SettedTime);
@@ -116,6 +113,7 @@ contract ContestGame {
         payable(_to).transfer(_amount);
     }
 
+    // Setter for the tournament Fee.
     function setTournamentFee(uint _tournamentID, uint _fee) external onlyOwner{
         tournamentFee[_tournamentID] = _fee;
         emit TournamentCommissionSetted(_fee, block.timestamp);
