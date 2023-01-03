@@ -18,7 +18,6 @@ contract Vault {
 
     event RevertTransferNftFromVaultToWalletERC721(address VaultAddress, address GamerAddress, uint256 NFTID, uint256 FeeAmount, uint256 RevertedTime);
     event RevertTransferNftFromVaultToWalletERC1155(address VaultAddress, address GamerAddress, uint256 NFTID, uint256 Amount, uint256 FeeAmount, uint256 RevertedTime);
-    // Event to track when burned, id burned, player, and vaultAddress.
     event BoosterBurned(address VaultAddress, address GamerAddress, uint256 BoosterID, uint256 Amount, uint256 BurnedTime);
     event feePerNFTUpdated(uint NewFee, uint UpdatedTime);
 
@@ -30,6 +29,7 @@ contract Vault {
         treasuryAddress = _treasuryAddress;
     }
 
+    // Function to transfer ERC721 (NFT) from Personal Vault to Wallet.
     function revertNftFromVaultToWalletERC721(uint256[] memory _tokenIds) external {
         require(_tokenIds.length > 0, "It mustn't 0");
         //Get fees from the YLVault contract and multiply for the tokens length.
@@ -46,6 +46,7 @@ contract Vault {
         }
     }
 
+    // Function to transfer ERC1155 (Boosters) from Personal Vault to Wallet.
     function revertNftFromVaultToWalletERC1155(uint256 _tokenId, string memory _category, uint256 _amount) external {
         require(_amount > 0, "It mustn't 0");
         //Get fees from the YLVault contract and multiply for the tokens length.
