@@ -163,7 +163,7 @@ contract YLNFT1155 is ERC1155URIStorage, Ownable, ReentrancyGuard {
             "you can't mint YL1155 NFT, please contact the Admin"
         );
         require(
-            categoryAmount[_sport][_cnft] > categoryCount[_sport][_cnft],
+            categoryAmount[_sport][_cnft] >= (categoryCount[_sport][_cnft] + _amount),
             " Overflow! Amount of NFT category"
         );
         require(getPauseContract() == false, "NFT1155 Contract was paused!");
@@ -175,7 +175,7 @@ contract YLNFT1155 is ERC1155URIStorage, Ownable, ReentrancyGuard {
 
         setApprovalForAll(marketAddress, true);
         setApprovalForAll(address(this), true);
-        categoryCount[_sport][_cnft] += 1;
+        categoryCount[_sport][_cnft] += _amount;
 
         uint256 gasUsed = startGas - gasleft();
         emit minted1155(msg.sender, newTokenId, _amount, gasUsed);
@@ -190,7 +190,7 @@ contract YLNFT1155 is ERC1155URIStorage, Ownable, ReentrancyGuard {
         uint256 _amount
     ) public payable returns (bool) {
         require(
-            categoryAmount[_sport][_cnft] > categoryCount[_sport][_cnft],
+            categoryAmount[_sport][_cnft] >= (categoryCount[_sport][_cnft] + _amount),
             " Overflow! Amount of NFT category"
         );
         require(getPauseContract() == false, "NFT721 Contract was paused!");
