@@ -62,8 +62,6 @@ contract YL1155Marketplace is IERC1155Receiver,ReentrancyGuard{
     
     event AdminListedNFT1155(address user,uint256 nftid,uint256 quantity,uint256 price);
     event AdminUnlistedNFT1155(address user,uint256 nftid,uint256 price,uint256 timestamp);
-    event AdminPauselistedNFT1155(address user,uint256 nftid,uint256 timestamp);
-    event AdminUnpauselistedNFT1155(address user,uint256 nftid,uint256 timestamp);
     event PurchasedNFT1155(address user,uint256 boughtnftid,uint256 price,uint256 comission);
     event UserlistedNFTtoMarket1155(address user,uint256 nftid,uint256 price,uint256 timestamp);
     event UserNFTtoMarketSold1155(address user,uint256 nftid,uint256 price,uint256 comission);
@@ -110,19 +108,11 @@ contract YL1155Marketplace is IERC1155Receiver,ReentrancyGuard{
         emit MarketCommissionSet1155(msg.sender,_comission,block.timestamp);
     }
 
-    function adminPause(uint256 _auctionid) public{
+    function adminPauseUnpause(uint256 _auctionid) public{
         require( proxy.isSuperAdmin(msg.sender) == true,'You are not superadmin');
-        auction memory _auction= auctions[_auctionid];
-        pauseStatus[_auctionid]=true;
-        emit AdminPauselistedNFT1155(msg.sender,_auction.tokenId,block.timestamp);
+        pauseStatus[_auctionid] = !pauseStatus[_auctionid];
     }
 
-    function adminUnPause(uint256 _auctionid) public{
-        require(proxy.isSuperAdmin(msg.sender) == true,'You are not superadmin');
-        auction memory _auction= auctions[_auctionid];
-        pauseStatus[_auctionid]=false;
-        emit AdminUnpauselistedNFT1155(msg.sender,_auction.tokenId,block.timestamp);
-    }
     function _ownerOf(uint256 tokenId) internal view returns (bool) {
         return TokenX.balanceOf(msg.sender, tokenId) != 0;
     }
