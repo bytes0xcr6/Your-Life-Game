@@ -1,5 +1,5 @@
 //SPDX-License-Identifier: Unlicense
-pragma solidity ^0.8.9;
+pragma solidity 0.8.17;
 
 import "@openzeppelin/contracts/utils/Counters.sol";
 import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
@@ -34,6 +34,7 @@ contract YLNFT is
     address payable _ylnft721Owner;
     address public marketAddress1;
     address public marketAddress2;
+    address public ylVault;
     IProxy public proxy;
     Counters.Counter private _tokenIds;
     bool public yltpause;
@@ -89,6 +90,10 @@ contract YLNFT is
         onlyOwner
     {
         marketAddress1 = _marketAddress;
+    }
+
+    function setYLVault(address _ylVault) public onlyOwner {
+        ylVault = _ylVault;
     }
 
     function setMarketAddress2(address _marketAddress)
@@ -191,6 +196,7 @@ contract YLNFT is
         _mint(msg.sender, newTokenId);
         _setTokenURI(newTokenId, tokenURI);
         setApprovalForAll(marketAddress1, true);
+        setApprovalForAll(ylVault, true);
         setApprovalForAll(marketAddress2, true);
         setApprovalForAll(address(this), true);
 
