@@ -19,6 +19,10 @@ contract YLProxy is ReentrancyGuard, Ownable {
         _ylOwner = msg.sender;
         sufficientstakeamount = 100 * 10**18;
         ylt = IERC20(_yltAddress);
+        mintableAccounts[msg.sender] = true;
+        burnableAccounts[msg.sender] = true;
+        pausableAccounts[msg.sender] = true;
+        transferableAccounts[msg.sender] = true;
     }
 
     mapping(address => mapping(address => uint256)) public stakedAmount;
