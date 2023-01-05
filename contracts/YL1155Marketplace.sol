@@ -31,6 +31,8 @@ contract YL1155Marketplace is IERC1155Receiver,ReentrancyGuard{
     mapping(address => histo)history;
      
     mapping(address => uint256[])collectedArts;
+    
+    mapping(uint256 => bool) public pauseStatus;
      
     struct histo{
         uint256[] list;
@@ -95,7 +97,6 @@ contract YL1155Marketplace is IERC1155Receiver,ReentrancyGuard{
         proxy=_proxy;
     }
     
-    mapping(uint256 => bool) public pauseStatus;
 
     function setVaultAddress(address _vaultaddress) public{
         require( proxy.isSuperAdmin(msg.sender) == true,'You are not superadmin');
