@@ -146,6 +146,9 @@ describe("Deployment", function () {
       // set MARKETplace 1155 Address in the ERC1155 contract
       await ylNFT1155.setMarketAddress(yl1155Marketplace.address);
 
+      // set YLVault address in the ERC1155 contract
+      await ylNFT1155.setYLVaultAddress(ylVault.address);
+
       // SET MARKETplaces-721 (1 & 2) Addresses in the ERC721 contract
       await ylNFT.setMarketAddress1(ylNFTMarketplace1.address);
       await ylNFT.setMarketAddress2(ylNFTMarketplace2.address);
@@ -181,18 +184,27 @@ describe("Deployment", function () {
       );
 
       // BOOSTER - Set categories amount for BOOSTER & Create Boosters.
-      await ylNFT1155.setCategoryAmount("Soccer", "Men", 6);
-      console.log("✅ Booster Category Soccer/Men created with a maximum of 5");
+      await ylNFT1155.setCategoryAmount("Soccer", "speed", 6);
+      console.log(
+        "✅ Booster Category Soccer/speed created with a maximum of 5"
+      );
+
       await expect(
         ylNFT1155
           .connect(addr1)
-          .create1155Token("www.world.com", "Soccer", "Men", 5)
+          .create1155Token("www.world.com", "Soccer", "speed", 5)
       ).to.be.reverted;
       console.log("\n🛡Reverted if creating from not Admin account.");
-      await ylNFT1155.create1155Token("www.example.com", "Soccer", "Men", 5);
-      console.log("✅ 5 Boosters for Category Soccer/Men created");
+
+      await ylNFT1155.create1155Token("www.example.com", "Soccer", "speed", 5);
+      const nftBalanceOwner = await ylNFT1155.balanceOf(Owner.address, 1);
+      console.log(
+        "✅ Boosters for Category Soccer/speed created:",
+        nftBalanceOwner
+      );
+
       await expect(
-        ylNFT1155.create1155Token("www.example.com", "Soccer", "men", 3)
+        ylNFT1155.create1155Token("www.example.com", "Soccer", "speed", 3)
       ).to.be.reverted;
       console.log("🛡 Reverted if Overflow total per category.");
 
@@ -236,15 +248,38 @@ describe("Deployment", function () {
         [1, 2, 3, 4, 5]
       );
 
-      await expect(ylVault.storeNftFromWalletToVaultERC721(Owner.address, [1]))
+      const subVaultNFTs = await ylVault.vaultContract(Owner.address);
+      const vaultNFTsCounter = await ylVault.NFTsCounter(
+        Owner.address,
+        "Tennis"
+      );
+
+      console.log(
+        `✅ ${vaultNFTsCounter}/5 NFTs sent from Owner address to New Subvault address:`,
+        subVaultNFTs
+      );
+
+      await expect(ylVault.storeNftFromWalletToVaultERC721(addr1.address, [1]))
         .to.be.reverted;
       console.log(
         "🛡 Reverted if transfering to YLVault from a not NFT Owner account"
       );
+
       await expect(ylVault.storeNftFromWalletToVaultERC721(Owner.address, [6]))
         .to.be.reverted;
       console.log(
-        "🛡 Reverted if transfering to YLVault a not yet created NFTID"
+        "🛡 Reverted if transfering to YLVault a not yet created NFTid"
+      );
+
+      await ylVault.storeNftFromWalletToVaultERC1155(Owner.address, 1, 5);
+      await expect(
+        ylVault.storeNftFromWalletToVaultERC1155(Owner.address, 1, 1)
+      ).to.be.reverted;
+      console.log("🛡 Reverted if transfering Booster not created");
+      const subVaultBooster = await ylVault.vaultContract(Owner.address);
+      console.log(
+        "✅ 5 Boosters sent from Owner address to Subvault address:",
+        subVaultBooster
       );
     });
   });
@@ -252,11 +287,11 @@ describe("Deployment", function () {
 
 // MISING ON THE TEST:
 /* 
-  Check the subvault is created and when sending again a second subvault is not created
   Store in subvault ERC1155 (ERC115 RECEIVER needed?)
   Withdraw from subvault.
   Set category maximum amount.
-  Start a game with subvault full.
+  Play a game with subvault full.
+  Pay tournament fees
   try to start a game with subvault empty.
 */
 
