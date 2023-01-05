@@ -31,7 +31,7 @@ contract Vault {
 
     // Function to transfer ERC721 (NFT) from Personal Vault to Wallet.
     function revertNftFromVaultToWalletERC721(uint256[] memory _tokenIds) external {
-        require(ylNFT.vaultContract(msg.sender) == address(this), "You`r not the subVault owner");
+        require(YLVault(treasuryAddress).vaultContract(msg.sender) == address(this), "You`r not the subVault owner");
         require(_tokenIds.length > 0, "It mustn't 0");
         //Get fees from the YLVault contract and multiply for the tokens length.
         uint256 _fee = YLVault(treasuryAddress).revertNFTComision() * _tokenIds.length;
@@ -50,7 +50,7 @@ contract Vault {
     // Function to transfer ERC1155 (Boosters) from Personal Vault to Wallet.
     function revertNftFromVaultToWalletERC1155(uint256 _tokenId, string memory _category, uint256 _amount) external {
         require(_amount > 0, "It mustn't 0");
-        require(ylNFT.vaultContract(msg.sender) == address(this), "You`r not the subVault owner");
+        require(YLVault(treasuryAddress).vaultContract(msg.sender) == address(this), "You`r not the subVault owner");
         //Get fees from the YLVault contract and multiply for the tokens length.
         uint256 _fee = YLVault(treasuryAddress).revertNFTComision() * _amount;
         require(ylERC20.balanceOf(msg.sender) >= _fee, "Insufficient balance for fee");
