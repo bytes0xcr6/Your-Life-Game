@@ -18,9 +18,9 @@ contract YLVault is Ownable{
 
     // player address => subStorageVault address
     mapping(address => address) public vaultContract;
-    // address => SportCategory => amountNFTs Total amount of NFTs in substorage per address and Sport.  1- Footbal, 2- Basketball, 3- Rugby (Example)
+    // player address => SportCategory => amountNFTs Total amount of NFTs in substorage per address and Sport.  1- Footbal, 2- Basketball, 3- Rugby (Example)
     mapping(address => mapping (string => uint)) public NFTsCounter; 
-    //address => SportCategory => elegible. Gamer is elegible to play, as he added at least 5 footbal players (Example)
+    // player address => SportCategory => elegible. Gamer is elegible to play, as he added at least 5 footbal players (Example)
     mapping(address => mapping (string => bool)) public elegibleGamer; 
     // SportCategory => playersNeeded. Example: Footbal: 11;
     mapping(string => uint8) public playersNeeded;
@@ -41,7 +41,7 @@ contract YLVault is Ownable{
         require(_tokenIds.length > 0, "It mustn't 0");
 
         if(vaultContract[_gamer] == address(0x0)) {
-            Vault newVault = new Vault(address(ylNFTERC721), ylNFTERC1155, ylERC20, treasuryAddress);
+            Vault newVault = new Vault(address(ylNFTERC721), ylNFTERC1155, ylERC20, owner());
             vaultContract[_gamer] = address(newVault);
         }
         for(uint i = 0; i < _tokenIds.length; i++)
@@ -50,7 +50,7 @@ contract YLVault is Ownable{
 
             string memory _category = YLNFT(address(ylNFTERC721)).getCategory(_tokenIds[i]);
             ylNFTERC721.transferFrom(msg.sender, vaultContract[_gamer], _tokenIds[i]);
-            NFTsCounter[_gamer][_category] += _tokenIds.length; //Update counter for each Sport.
+            NFTsCounter[_gamer][_category] += 1; //Update counter for each Sport.
         // Update elegibility
             if(NFTsCounter[_gamer][_category] > playersNeeded[_category]) {
                 elegibleGamer[_gamer][_category] = true;
@@ -66,7 +66,7 @@ contract YLVault is Ownable{
         require(ylNFTERC1155.balanceOf(msg.sender, _tokenId) <= _amount, "You need more Boosters");
     
         if(vaultContract[_gamer] == address(0x0)) {
-            Vault newVault = new Vault((address(ylNFTERC721)), ylNFTERC1155, ylERC20, treasuryAddress);
+            Vault newVault = new Vault((address(ylNFTERC721)), ylNFTERC1155, ylERC20, owner());
             vaultContract[_gamer] = address(newVault);
         }
         
