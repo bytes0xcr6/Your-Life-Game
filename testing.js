@@ -7,7 +7,7 @@ const { expect } = require("chai");
 describe("Deployment", function () {
   async function deploymentAll() {
     const baseURI = "<BASE URI TO SET>";
-    const [Owner, addr1] = await ethers.getSigners();
+    const [Owner, addr1, addr2] = await ethers.getSigners();
     console.log("Contracts deployer / Owner:", Owner.address);
 
     // DEPLOY - YLT Token Contract
@@ -122,6 +122,7 @@ describe("Deployment", function () {
       ylProxy,
       ylVault,
       addr1,
+      addr2,
     };
   }
 
@@ -140,6 +141,7 @@ describe("Deployment", function () {
         ylProxy,
         ylVault,
         addr1,
+        addr2,
       } = await loadFixture(deploymentAll);
 
       // set MARKETplace 1155 Address in the ERC1155 contract
@@ -161,15 +163,12 @@ describe("Deployment", function () {
       expect(await ylNFT.marketAddress2()).to.equal(ylNFTMarketplace2.address);
       console.log("✅ Marketplaces721 (1 & 2) set in the ERC721 contract");
 
-      // // Pause and unpause AUCTION
-      // // console.log(yl1155Marketplace.pauseStatus[0]);
-      // await yl1155Marketplace.adminPauseUnpause(0);
-      // console.log(await yl1155Marketplace.pauseStatus(0));
-      // // expect(await yl1155Marketplace.pauseStatus(0)).to.equal(true);
-      // console.log("✅ Auction 0 Paused");
+      const balanceOwners = await ylt.balanceOf(Owner.address);
+      console.log("Total balance before staking", balanceOwners);
 
-      //STAKE YLToken
+      //STAKE YLToken (Owner)
       const minToStake = "100000000000000000000";
+      // Approve to manage.
       await ylt.approve(ylProxy.address, minToStake);
       await ylProxy.depositYLT(minToStake);
       expect(
@@ -181,11 +180,33 @@ describe("Deployment", function () {
           await ylProxy.totalStakedAmount(Owner.address, ylt.address)
         )
       );
+      const balanceYLTOwner = await ylt.balanceOf(Owner.address);
+      console.log(balanceYLTOwner);
 
-      // BOOSTER - Set categories amount for BOOSTER & Create Boosters.
+      // Transfer YLTToken to address 2 & Stake
+      await ylt.transfer(addr2.address, "200000000000000000000");
+      const balanceYLTAddr2 = await ylt.balanceOf(addr2.address);
+      expect(balanceYLTAddr2).to.be.equal("200000000000000000000");
+      console.log(
+        "✅ The Addr2 has received YLToken from Owner:",
+        balanceYLTAddr2
+      );
+
+      await ylt.connect(addr2).approve(ylProxy.address, minToStake);
+      await ylProxy.connect(addr2).depositYLT(minToStake);
+      const balanceAddr2AfterStaking = await ylt.balanceOf(addr2.address);
+      expect(
+        await ylProxy.totalStakedAmount(addr2.address, ylt.address)
+      ).to.be.equal(minToStake);
+      console.log(
+        "✅The Addr2 Balance is staking the minimum to stake and his balance now is:",
+        balanceAddr2AfterStaking
+      );
+
+      // BOOSTER - Set categories amount for BOOSTER & MINT 5 Boosters. Then transfer to addr2
       await ylNFT1155.setCategoryAmount("Soccer", "speed", 5);
       console.log(
-        "✅ Booster Category Soccer/speed created with a maximum of 5"
+        "\n✅ Booster Category Soccer/speed created with a maximum of 5"
       );
 
       await expect(
@@ -207,22 +228,27 @@ describe("Deployment", function () {
       ).to.be.reverted;
       console.log("🛡 Reverted if Overflow total per category.");
 
-      //NFT - Set categories amount for NFTs & Create 5 NFT.
-      await ylNFT.setCategoryAmount("Tennis", "Women", 5);
-      console.log("\n✅ NFT Category Tennis/Women created with a maximum of 5");
+      await ylNFT1155.ylnft1155Transfer(addr2.address, 1, 5);
+      expect(await ylNFT1155.balanceOf(addr2.address, 1)).to.equal(5);
+      console.log("✅ Owner has transfer 5 Boosters to addr2.");
+
+      //NFT - Set categories amount for NFTs & MINT 5 NFT. Then transfer to addr2
+      await ylNFT.setCategoryAmount("Soccer", "Women", 5);
+      console.log("\n✅ NFT Category Soccer/Women created with a maximum of 5");
       console.log(
         "Total available per category",
-        await ylNFT.getCategoryAmount("Tennis", "Women")
+        await ylNFT.getCategoryAmount("Soccer", "Women")
       );
-      await ylNFT.createToken("www.example.com", "Tennis", "Women");
-      await ylNFT.createToken("www.example.com", "Tennis", "Women");
-      await ylNFT.createToken("www.example.com", "Tennis", "Women");
-      await ylNFT.createToken("www.example.com", "Tennis", "Women");
-      await ylNFT.createToken("www.example.com", "Tennis", "Women");
+
+      await ylNFT.createToken("www.example.com", "Soccer", "Women");
+      await ylNFT.createToken("www.example.com", "Soccer", "Women");
+      await ylNFT.createToken("www.example.com", "Soccer", "Women");
+      await ylNFT.createToken("www.example.com", "Soccer", "Women");
+      await ylNFT.createToken("www.example.com", "Soccer", "Women");
 
       console.log(
-        "✅ NFT Generated for the Tennis/ Women Category:",
-        await ylNFT.getCategoryCount("Tennis", "Women")
+        "✅ NFT Generated for the Soccer/ Women Category:",
+        await ylNFT.getCategoryCount("Soccer", "Women")
       );
       console.log("🛡 Reverted if creating more than Category Amount, checked.");
 
@@ -230,62 +256,99 @@ describe("Deployment", function () {
         "✅ Get Category by ID, Category 1 is:",
         await ylNFT.getCategory(1)
       );
-      expect("Tennis").to.equal(await ylNFT.getCategory(1));
+      expect("Soccer").to.equal(await ylNFT.getCategory(1));
 
+      for (let i = 1; i < 6; i++) {
+        await ylNFT.ylnft721Transfer(addr2.address, [i]);
+      }
+
+      console.log("✅ Owner has transferred 5 Soccer NFTs to Address2! ");
       // YLVAULT - Store NFT and Boosters.
       await expect(
         ylVault
           .connect(addr1)
-          .storeNftFromWalletToVaultERC721(Owner.address, [1])
+          .storeNftFromWalletToVaultERC721(addr2.address, [1])
       ).to.be.reverted;
       console.log(
-        "\n🛡 Reverted if transfering to YLVault from a not NFT Owner account"
+        "\n🛡 Reverted if transfering to YLVault from a not NFT addr2 account"
       );
 
-      await ylVault.storeNftFromWalletToVaultERC721(
-        Owner.address,
-        [1, 2, 3, 4, 5]
-      );
+      // Approve to manage.
+      await ylNFT.connect(addr2).approve(ylVault.address, 1);
+      await ylNFT.connect(addr2).approve(ylVault.address, 2);
+      await ylNFT.connect(addr2).approve(ylVault.address, 3);
+      await ylNFT.connect(addr2).approve(ylVault.address, 4);
+      await ylNFT.connect(addr2).approve(ylVault.address, 5);
+      console.log("\n ✅Addr2 has approved YLVault contract for his NFTS");
 
-      const subVaultNFTTransfer = await ylVault.vaultContract(Owner.address);
+      await ylVault
+        .connect(addr2)
+        .storeNftFromWalletToVaultERC721(addr2.address, [1, 2, 3, 4, 5]);
+
+      const subVaultNFTTransfer = await ylVault.vaultContract(addr2.address);
       const vaultNFTsCounter = await ylVault.NFTsCounter(
-        Owner.address,
-        "Tennis"
+        addr2.address,
+        "Soccer"
       );
 
       console.log(
-        `✅ ${vaultNFTsCounter}/5 NFTs sent from Owner address to New Subvault address:`,
+        `✅ ${vaultNFTsCounter}/5 NFTs sent from addr2 address to New Subvault address:`,
         subVaultNFTTransfer
       );
 
       await expect(ylVault.storeNftFromWalletToVaultERC721(addr1.address, [1]))
         .to.be.reverted;
       console.log(
-        "🛡 Reverted if transfering to YLVault from a not NFT Owner account"
+        "🛡 Reverted if transfering to YLVault from a not NFT addr2 account"
       );
 
-      await expect(ylVault.storeNftFromWalletToVaultERC721(Owner.address, [6]))
+      await expect(ylVault.storeNftFromWalletToVaultERC721(addr2.address, [6]))
         .to.be.reverted;
       console.log(
         "🛡 Reverted if transfering to YLVault a not yet created NFTid"
       );
 
-      await ylVault.storeNftFromWalletToVaultERC1155(Owner.address, 1, 5);
+      // Approve to manage. setApprovalForAll
+      await ylNFT1155.connect(addr2).setApprovalForAll(ylVault.address, true);
+      console.log("\n ✅Addr2 has approved YLVault contract for his Boosters");
+
+      await ylVault
+        .connect(addr2)
+        .storeNftFromWalletToVaultERC1155(addr2.address, 1, 5);
       await expect(
-        ylVault.storeNftFromWalletToVaultERC1155(Owner.address, 1, 1)
+        ylVault.storeNftFromWalletToVaultERC1155(addr2.address, 1, 6)
       ).to.be.reverted;
       console.log("🛡 Reverted if transfering Booster not created");
 
       const subVaultBoosterTransfer = await ylVault.vaultContract(
-        Owner.address
+        addr2.address
       );
       expect(subVaultNFTTransfer).to.equal(subVaultBoosterTransfer);
       console.log(
-        "✅ 5 Boosters sent from Owner address to Subvault address:",
+        "✅ 5 Boosters sent from addr2 address to Subvault address:",
         subVaultBoosterTransfer
       );
 
       // WITHDRAW ERC721 FROM VAULT AND PAY FEES
+      const balanceOwnerYLTBefore = await ylt.balanceOf(Owner.address);
+      console.log(
+        "The Owner/Treasury balance before withdrawn",
+        balanceOwnerYLTBefore
+      );
+
+      const balanceOwnerYLTAfter = await ylt.balanceOf(Owner.address);
+      console.log(
+        "The Owner/Treasury balance after withdrawn",
+        balanceOwnerYLTAfter
+      );
+
+      // ADD NEW SPORT (Soccer) - OWNER
+      await ylVault.addNewSport("Soccer", 5);
+      const playersNeededSoccer = await ylVault.playersNeeded("Soccer");
+      expect(await ylVault.playersNeeded("Soccer")).to.equal(5);
+      console.log("\n✅ Minimum players for Soccer are:", playersNeededSoccer);
+
+      //
 
       // WITHDRAW ERC721 FROM VAULT AND PAY FEES
     });
