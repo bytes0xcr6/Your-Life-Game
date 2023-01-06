@@ -92,7 +92,7 @@ contract ContestGame {
 
         Match memory _match = Match (
             _category,
-            [msg.sender, address(0)],
+            [_player1, _player2],
             address(winner)
         );
         matchIndex[_category][matchCounter[_category]] = _match;
