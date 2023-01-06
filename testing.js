@@ -240,11 +240,9 @@ describe("Deployment", function () {
         await ylNFT.getCategoryAmount("Soccer", "Women")
       );
 
-      await ylNFT.createToken("www.example.com", "Soccer", "Women");
-      await ylNFT.createToken("www.example.com", "Soccer", "Women");
-      await ylNFT.createToken("www.example.com", "Soccer", "Women");
-      await ylNFT.createToken("www.example.com", "Soccer", "Women");
-      await ylNFT.createToken("www.example.com", "Soccer", "Women");
+      for (let i = 0; i < 10; i++) {
+        await ylNFT.createToken("www.example.com", "Soccer", "Women");
+      }
 
       console.log(
         "✅ NFT Generated for the Soccer/ Women Category:",
