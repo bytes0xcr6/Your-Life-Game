@@ -307,7 +307,7 @@ describe("Deployment", function () {
 
       await ylVault
         .connect(addr3)
-        .storeNftFromWalletToVaultERC721(addr2.address, [6, 7, 8, 9, 10]);
+        .storeNftFromWalletToVaultERC721(addr3.address, [6, 7, 8, 9, 10]);
 
       // Addr2
       const subVaultNFTTransferAddr2 = await ylVault.vaultContract(
@@ -321,6 +321,14 @@ describe("Deployment", function () {
       console.log(
         `✅ ${vaultNFTsCounterAddr2}/5 NFTs sent from addr2 address to New Subvault address:`,
         subVaultNFTTransferAddr2
+      );
+      console.log(
+        "\n✅ Is Addr2 elegible to play? ",
+        await ylVault.checkElegible(addr2.address, "Soccer")
+      );
+      console.log(
+        "✅ Is Addr3 elegible to play? ",
+        await ylVault.checkElegible(addr3.address, "Soccer")
       );
 
       // Addr3
@@ -381,6 +389,36 @@ describe("Deployment", function () {
       expect(await ylVault.playersNeeded("Soccer")).to.equal(5);
       console.log("\n✅ Minimum players for Soccer are:", playersNeededSoccer);
 
+      // Approve ContestGame to manage user´s YLT
+      const tournamentFee = 50;
+      await ylt.connect(addr2).approve(contestGame.address, tournamentFee);
+      await ylt.connect(addr3).approve(contestGame.address, tournamentFee);
+
+      // SET TOURNAMENT FEE, PAY AND CHECK IF PAID.
+      await contestGame.setTournamentFee(1, tournamentFee);
+      console.log(
+        `\n✅ Tournament Fee set for ${await contestGame.getTournamentFee(
+          1
+        )} YLT`
+      );
+
+      console.log("Balance addr2 is:", await ylt.balanceOf(addr2.address));
+      console.log("Balance addr3 is:", await ylt.balanceOf(addr3.address));
+
+      // ----- PROBLEMA!!!!! LOS USUARIOS TIENEN BALANCE, PERO NO DEJA PAGAR LA TOURNAMENT FEE, INCLUSO DANDO PERMISOS!!!------
+      await contestGame.connect(addr2).payTournamentFee(1);
+      await contestGame.connect(addr3).payTournamentFee(1);
+      console.log("\n✅ Addr2 & Addr3 paid the Tournament Fee ");
+
+      // Set Minimum Stake to play
+      await contestGame.setMinStakedPlay("100000000000000000000");
+
+      // PLAY A GAME
+      await contestGame.play(addr2.address, 10, addr3.address, 11, "Soccer", 1);
+      const resultMatch = await contestGame.getMatch("Soccer", 0);
+      console.log("\n✅ The winner is:", resultMatch.winner);
+
+
       // // WITHDRAW ERC721 FROM VAULT AND PAY FEES
       // const balanceOwnerYLTBeforeNFTWithdrawn = await ylt.balanceOf(Owner.address);
       // console.log(
@@ -393,23 +431,27 @@ describe("Deployment", function () {
       //   "The Owner/Treasury balance after withdrawn",
       //   balanceOwnerYLTAfterNFTWithdrawn
       // );
-
       // // WITHDRAW ERC721 FROM VAULT AND PAY FEES
     });
   });
 });
 
 // MISING ON THE TEST:
+
 /* 
+------- CONTEST GAME CONTRACT ------------------
+Play a game with subvault full.
+Pay tournament fees
+Check balances after fees paid.
+try to start a game with subvault empty. (Expect error)
+ADD A MODULE TO THE RANDOM NUMBER FROM 0.1 TO 0.9!!!!!!!!!!!!!!!!
+
  -----SUBVAULT CONTRACT -----------------------
   Withdraw from subvault NFTF & BOOSTERS. CHECK HOW TO GET ABI FROM SUBVAULT CONTRACT!!!!!.
   Check balances after fees paid.
-  Burn Booster
-  ------- CONTEST GAME CONTRACT ------------------
-  Play a game with subvault full.
-  Pay tournament fees
-  Check balances after fees paid.
-  try to start a game with subvault empty. (Expect error)
+  Burn Boosters
+
+
   -------- AUCTION CONTRACT -------------
   it may needs ERC1155 receiver.
 */
