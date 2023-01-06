@@ -69,8 +69,8 @@ contract ContestGame {
         
         address winner;
         address looser;
-        uint _randomCoheficient1 = uint(keccak256(abi.encodePacked(block.timestamp, block.difficulty, _player1)));
-        uint _randomCoheficient2 = uint(keccak256(abi.encodePacked(block.timestamp, block.difficulty, _player2)));
+        uint _randomCoheficient1 = random(_player1);
+        uint _randomCoheficient2 = random(_player2);
 
         if((_score1 + _randomCoheficient1) > (_score2 + _randomCoheficient2)) {
             winner = _player1;
@@ -99,6 +99,13 @@ contract ContestGame {
 
         emit MatchFinished(winner, _category, looser, matchCounter[_category], block.timestamp);
         matchCounter[_category]++;
+    }
+
+    // Generates a random number from 1 to 9
+    function random(address _player) public view returns (uint) {
+    uint randomnumber = uint(keccak256(abi.encodePacked(block.timestamp, block.difficulty, _player))) % 9;
+    randomnumber++;
+    return randomnumber;
     }
 
     // Pay YLT fee to be elegible for a tournament, passing the tournament ID.
