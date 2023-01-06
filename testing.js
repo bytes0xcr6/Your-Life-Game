@@ -185,17 +185,23 @@ describe("Deployment", function () {
       const balanceYLTOwner = await ylt.balanceOf(Owner.address);
       console.log(balanceYLTOwner);
 
-      // Transfer YLTToken to address 2 & Stake
+      // Transfer YLTToken to addr2 & addr3 & Stake
       await ylt.transfer(addr2.address, "200000000000000000000");
+      await ylt.transfer(addr3.address, "200000000000000000000");
+
       const balanceYLTAddr2 = await ylt.balanceOf(addr2.address);
       expect(balanceYLTAddr2).to.be.equal("200000000000000000000");
       console.log(
-        "✅ The Addr2 has received YLToken from Owner:",
-        balanceYLTAddr2
+        `✅ The Addr2 & Addr3 has received each ${balanceYLTAddr2} YLToken from Owner:`
       );
 
+      // Approve YLProxy for staking YLTokens from Addr2 and Addr3
       await ylt.connect(addr2).approve(ylProxy.address, minToStake);
+      await ylt.connect(addr3).approve(ylProxy.address, minToStake);
+
       await ylProxy.connect(addr2).depositYLT(minToStake);
+      await ylProxy.connect(addr3).depositYLT(minToStake);
+
       const balanceAddr2AfterStaking = await ylt.balanceOf(addr2.address);
       expect(
         await ylProxy.totalStakedAmount(addr2.address, ylt.address)
@@ -369,28 +375,26 @@ describe("Deployment", function () {
         subVaultBoosterTransfer
       );
 
-      // WITHDRAW ERC721 FROM VAULT AND PAY FEES
-      const balanceOwnerYLTBefore = await ylt.balanceOf(Owner.address);
-      console.log(
-        "The Owner/Treasury balance before withdrawn",
-        balanceOwnerYLTBefore
-      );
-
-      const balanceOwnerYLTAfter = await ylt.balanceOf(Owner.address);
-      console.log(
-        "The Owner/Treasury balance after withdrawn",
-        balanceOwnerYLTAfter
-      );
-
       // ADD NEW SPORT (Soccer) - OWNER
       await ylVault.addNewSport("Soccer", 5);
       const playersNeededSoccer = await ylVault.playersNeeded("Soccer");
       expect(await ylVault.playersNeeded("Soccer")).to.equal(5);
       console.log("\n✅ Minimum players for Soccer are:", playersNeededSoccer);
 
-      //
+      // // WITHDRAW ERC721 FROM VAULT AND PAY FEES
+      // const balanceOwnerYLTBeforeNFTWithdrawn = await ylt.balanceOf(Owner.address);
+      // console.log(
+      //   "The Owner/Treasury balance before withdrawn",
+      //   balanceOwnerYLTBeforeNFTWithdrawn
+      // );
 
-      // WITHDRAW ERC721 FROM VAULT AND PAY FEES
+      // const balanceOwnerYLTAfterNFTWithdrawn = await ylt.balanceOf(Owner.address);
+      // console.log(
+      //   "The Owner/Treasury balance after withdrawn",
+      //   balanceOwnerYLTAfterNFTWithdrawn
+      // );
+
+      // // WITHDRAW ERC721 FROM VAULT AND PAY FEES
     });
   });
 });
