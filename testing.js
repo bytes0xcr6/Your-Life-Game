@@ -418,7 +418,6 @@ describe("Deployment", function () {
       const resultMatch = await contestGame.getMatch("Soccer", 0);
       console.log("\n✅ The winner is:", resultMatch.winner);
 
-
       // // WITHDRAW ERC721 FROM VAULT AND PAY FEES
       // const balanceOwnerYLTBeforeNFTWithdrawn = await ylt.balanceOf(Owner.address);
       // console.log(
@@ -444,7 +443,6 @@ Play a game with subvault full.
 Pay tournament fees
 Check balances after fees paid.
 try to start a game with subvault empty. (Expect error)
-ADD A MODULE TO THE RANDOM NUMBER FROM 0.1 TO 0.9!!!!!!!!!!!!!!!!
 
  -----SUBVAULT CONTRACT -----------------------
   Withdraw from subvault NFTF & BOOSTERS. CHECK HOW TO GET ABI FROM SUBVAULT CONTRACT!!!!!.
