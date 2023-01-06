@@ -7,7 +7,7 @@ const { expect } = require("chai");
 describe("Deployment", function () {
   async function deploymentAll() {
     const baseURI = "<BASE URI TO SET>";
-    const [Owner, addr1, addr2] = await ethers.getSigners();
+    const [Owner, addr1, addr2, addr3] = await ethers.getSigners();
     console.log("Contracts deployer / Owner:", Owner.address);
 
     // DEPLOY - YLT Token Contract
@@ -123,6 +123,7 @@ describe("Deployment", function () {
       ylVault,
       addr1,
       addr2,
+      addr3,
     };
   }
 
@@ -142,6 +143,7 @@ describe("Deployment", function () {
         ylVault,
         addr1,
         addr2,
+        addr3,
       } = await loadFixture(deploymentAll);
 
       // set MARKETplace 1155 Address in the ERC1155 contract
@@ -233,13 +235,16 @@ describe("Deployment", function () {
       console.log("✅ Owner has transfer 5 Boosters to addr2.");
 
       //NFT - Set categories amount for NFTs & MINT 5 NFT. Then transfer to addr2
-      await ylNFT.setCategoryAmount("Soccer", "Women", 5);
-      console.log("\n✅ NFT Category Soccer/Women created with a maximum of 5");
+      await ylNFT.setCategoryAmount("Soccer", "Women", 10);
+      console.log(
+        "\n✅ NFT Category Soccer/Women created with a maximum of 10"
+      );
       console.log(
         "Total available per category",
         await ylNFT.getCategoryAmount("Soccer", "Women")
       );
 
+      // Create 10 NFTs (5 vs 5)
       for (let i = 0; i < 10; i++) {
         await ylNFT.createToken("www.example.com", "Soccer", "Women");
       }
@@ -256,11 +261,17 @@ describe("Deployment", function () {
       );
       expect("Soccer").to.equal(await ylNFT.getCategory(1));
 
+      // Transfer NFTs to 2 players
       for (let i = 1; i < 6; i++) {
         await ylNFT.ylnft721Transfer(addr2.address, [i]);
       }
+      for (let i = 6; i < 11; i++) {
+        await ylNFT.ylnft721Transfer(addr3.address, [i]);
+      }
 
-      console.log("✅ Owner has transferred 5 Soccer NFTs to Address2! ");
+      console.log(
+        "✅ Owner has transferred 5 Soccer NFTs to Address2 & other 5 to Addr3! "
+      );
       // YLVAULT - Store NFT and Boosters.
       await expect(
         ylVault
@@ -272,26 +283,52 @@ describe("Deployment", function () {
       );
 
       // Approve to manage.
-      await ylNFT.connect(addr2).approve(ylVault.address, 1);
-      await ylNFT.connect(addr2).approve(ylVault.address, 2);
-      await ylNFT.connect(addr2).approve(ylVault.address, 3);
-      await ylNFT.connect(addr2).approve(ylVault.address, 4);
-      await ylNFT.connect(addr2).approve(ylVault.address, 5);
-      console.log("\n ✅Addr2 has approved YLVault contract for his NFTS");
+      for (let i = 1; i < 6; i++) {
+        await ylNFT.connect(addr2).approve(ylVault.address, i);
+      }
+
+      for (let i = 6; i < 11; i++) {
+        await ylNFT.connect(addr3).approve(ylVault.address, i);
+      }
+
+      console.log(
+        "\n ✅Addr2 & Addr3 have approved YLVault contract for his NFTS"
+      );
 
       await ylVault
         .connect(addr2)
         .storeNftFromWalletToVaultERC721(addr2.address, [1, 2, 3, 4, 5]);
 
-      const subVaultNFTTransfer = await ylVault.vaultContract(addr2.address);
-      const vaultNFTsCounter = await ylVault.NFTsCounter(
+      await ylVault
+        .connect(addr3)
+        .storeNftFromWalletToVaultERC721(addr2.address, [6, 7, 8, 9, 10]);
+
+      // Addr2
+      const subVaultNFTTransferAddr2 = await ylVault.vaultContract(
+        addr2.address
+      );
+      const vaultNFTsCounterAddr2 = await ylVault.NFTsCounter(
         addr2.address,
         "Soccer"
       );
 
       console.log(
-        `✅ ${vaultNFTsCounter}/5 NFTs sent from addr2 address to New Subvault address:`,
-        subVaultNFTTransfer
+        `✅ ${vaultNFTsCounterAddr2}/5 NFTs sent from addr2 address to New Subvault address:`,
+        subVaultNFTTransferAddr2
+      );
+
+      // Addr3
+      const subVaultNFTTransferAddr3 = await ylVault.vaultContract(
+        addr3.address
+      );
+      const vaultNFTsCounterAddr3 = await ylVault.NFTsCounter(
+        addr3.address,
+        "Soccer"
+      );
+
+      console.log(
+        `✅ ${vaultNFTsCounterAddr3}/5 NFTs sent from addr3 address to New Subvault address:`,
+        subVaultNFTTransferAddr3
       );
 
       await expect(ylVault.storeNftFromWalletToVaultERC721(addr1.address, [1]))
@@ -306,13 +343,18 @@ describe("Deployment", function () {
         "🛡 Reverted if transfering to YLVault a not yet created NFTid"
       );
 
-      // Approve to manage. setApprovalForAll
+      // Addr2 & Addr3 Approved YLVault to manage. setApprovalForAll
       await ylNFT1155.connect(addr2).setApprovalForAll(ylVault.address, true);
-      console.log("\n ✅Addr2 has approved YLVault contract for his Boosters");
+      await ylNFT1155.connect(addr3).setApprovalForAll(ylVault.address, true);
+      console.log(
+        "\n ✅Addr2 & Addr3 has approved YLVault contract for his Boosters"
+      );
 
       await ylVault
         .connect(addr2)
         .storeNftFromWalletToVaultERC1155(addr2.address, 1, 5);
+      console.log("\n ✅ Addr2 stored his ERC1155 in their subvaults");
+
       await expect(
         ylVault.storeNftFromWalletToVaultERC1155(addr2.address, 1, 6)
       ).to.be.reverted;
@@ -321,7 +363,7 @@ describe("Deployment", function () {
       const subVaultBoosterTransfer = await ylVault.vaultContract(
         addr2.address
       );
-      expect(subVaultNFTTransfer).to.equal(subVaultBoosterTransfer);
+      expect(subVaultNFTTransferAddr2).to.equal(subVaultBoosterTransfer);
       console.log(
         "✅ 5 Boosters sent from addr2 address to Subvault address:",
         subVaultBoosterTransfer
