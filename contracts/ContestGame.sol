@@ -102,7 +102,7 @@ contract ContestGame {
     }
 
     // Generates a random number from 1 to 9
-    function random(address _player) public view returns (uint) {
+    function random(address _player) internal view returns (uint) {
     uint randomnumber = uint(keccak256(abi.encodePacked(block.timestamp, block.difficulty, _player))) % 9;
     randomnumber++;
     return randomnumber;
