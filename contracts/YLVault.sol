@@ -76,7 +76,7 @@ contract YLVault is Ownable{
 
     // Setter from the Vault substorage Counter when we revert NFTs to Wallet. 
     function updateCounter(address _gamer, string memory _category, uint _amount) external {
-        require(vaultContract[_gamer] != msg.sender, "You are not the vault owner");
+        require(vaultContract[_gamer] == msg.sender, "You are not the vault owner");
         NFTsCounter[_gamer][_category] -= _amount; 
         
         if(NFTsCounter[_gamer][_category] < playersNeeded[_category]) {
