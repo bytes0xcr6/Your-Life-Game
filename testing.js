@@ -389,10 +389,31 @@ describe("Deployment", function () {
       expect(await ylVault.playersNeeded("Soccer")).to.equal(5);
       console.log("\n✅ Minimum players for Soccer are:", playersNeededSoccer);
 
-      // Approve ContestGame to manage user´s YLT
-      const tournamentFee = 50;
-      await ylt.connect(addr2).approve(contestGame.address, tournamentFee);
-      await ylt.connect(addr3).approve(contestGame.address, tournamentFee);
+      //Instace Subcontracts for Addr2 & Addr3, then Burn 3 Boosters
+      const BoostersToBurn = 3;
+      const subVault = await ethers.getContractFactory("Vault");
+      const subVaultAddr2 = await subVault.attach(subVaultNFTTransferAddr2);
+
+      const subVaultAddr3 = await subVault.attach(subVaultNFTTransferAddr3);
+
+      const balanceBoosterBeforeBurn = await ylNFT1155.balanceOf(
+        subVaultNFTTransferAddr2,
+        1
+      );
+
+      await subVaultAddr2.connect(addr2).burnBoosters([1], [BoostersToBurn]);
+
+      const balanceBoosterAfterBurn = await ylNFT1155.balanceOf(
+        subVaultNFTTransferAddr2,
+        1
+      );
+
+      expect(balanceBoosterAfterBurn).to.equal(
+        balanceBoosterBeforeBurn - BoostersToBurn
+      );
+      console.log(
+        `\n✅Address2 has burned ${BoostersToBurn} Boosters of ${balanceBoosterBeforeBurn} & now he has ${balanceBoosterAfterBurn} left in his SubVault`
+      );
 
       // SET TOURNAMENT FEE, PAY AND CHECK IF PAID.
       await contestGame.setTournamentFee(1, tournamentFee);
@@ -404,6 +425,11 @@ describe("Deployment", function () {
 
       console.log("Balance addr2 is:", await ylt.balanceOf(addr2.address));
       console.log("Balance addr3 is:", await ylt.balanceOf(addr3.address));
+
+      // Approve ContestGame to manage user´s YLT
+      const tournamentFee = 50;
+      await ylt.connect(addr2).approve(contestGame.address, tournamentFee);
+      await ylt.connect(addr3).approve(contestGame.address, tournamentFee);
 
       // ----- PROBLEMA!!!!! LOS USUARIOS TIENEN BALANCE, PERO NO DEJA PAGAR LA TOURNAMENT FEE, INCLUSO DANDO PERMISOS!!!------
       await contestGame.connect(addr2).payTournamentFee(1);
