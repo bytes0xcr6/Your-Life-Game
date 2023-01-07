@@ -19,24 +19,20 @@ contract Vault is IERC1155Receiver {
     IERC20 public ylERC20;
     YLNFT public ylNFT;
     IBurner private burnerERC1155;
-
-    address private contractFactory;
-    address payable public treasuryAddress;
-    address public vaultFactory;
+    YLVault public vaultFactory;
 
     event RevertTransferNftFromVaultToWalletERC721(address VaultAddress, address GamerAddress, uint256 NFTID, uint256 FeeAmount, uint256 RevertedTime);
     event RevertTransferNftFromVaultToWalletERC1155(address VaultAddress, address GamerAddress, uint256 NFTID, uint256 Amount, uint256 FeeAmount, uint256 RevertedTime);
     event BoostersBurned(address VaultAddress, address GamerAddress, uint256[] BoosterID, uint256[] Amount, uint256 BurnedTime);
     event feePerNFTUpdated(uint NewFee, uint UpdatedTime);
 
-    constructor(address _ylNFTERC721, address _ylNFTERC1155, IERC20 _ylERC20, address _treasuryAddress) {
+    constructor(address _ylNFTERC721, address _ylNFTERC1155, address _ylERC20) {
         ylNFTERC721 = IERC721(_ylNFTERC721);
         ylNFTERC1155 = IERC1155(_ylNFTERC1155);
-        ylERC20 = _ylERC20;
+        ylERC20 = IERC20(_ylERC20);
         ylNFT = YLNFT(_ylNFTERC721);
         burnerERC1155 = IBurner(_ylNFTERC1155);
-        treasuryAddress = payable(_treasuryAddress);
-        vaultFactory = msg.sender;
+        vaultFactory = YLVault(msg.sender);
     }
 
     // Function to transfer ERC721 (NFT) from Personal Vault to Wallet.
@@ -46,8 +42,7 @@ contract Vault is IERC1155Receiver {
         //Get fees from the YLVault contract and multiply for the tokens length.
         uint256 _fee = YLVault(vaultFactory).revertNFTComision() * _tokenIds.length;
         require(ylERC20.balanceOf(msg.sender) >= _fee, "Insufficient balance for fee");
-        //Update counter for each Sport.
-        ylERC20.transferFrom(msg.sender, treasuryAddress, _fee);
+        ylERC20.transferFrom(msg.sender, vaultFactory.treasuryAddress(), _fee);
 
         for(uint i=0; i < _tokenIds.length; i++) {
             string memory _category = ylNFT.getCategory(_tokenIds[i]);
@@ -60,13 +55,13 @@ contract Vault is IERC1155Receiver {
     // Function to transfer ERC1155 (Boosters) from Personal Vault to Wallet.
     function revertNftFromVaultToWalletERC1155(uint256 _tokenId, string memory _category, uint256 _amount) external {
         require(_amount > 0, "It mustn't 0");
-        require(YLVault(treasuryAddress).vaultContract(msg.sender) == address(this), "You`r not the subVault owner");
+        require(YLVault(vaultFactory).vaultContract(msg.sender) == address(this), "You`r not the subVault owner");
         //Get fees from the YLVault contract and multiply for the tokens length.
-        uint256 _fee = YLVault(treasuryAddress).revertNFTComision() * _amount;
+        uint256 _fee = YLVault(vaultFactory).revertNFTComision() * _amount;
         require(ylERC20.balanceOf(msg.sender) >= _fee, "Insufficient balance for fee");
         //Update counter for each Sport.
-        YLVault(treasuryAddress).updateCounter(msg.sender, _category, _amount);
-        ylERC20.transferFrom(address(this), msg.sender, _fee);
+        YLVault(vaultFactory).updateCounter(msg.sender, _category, _amount);
+        ylERC20.transferFrom(msg.sender, vaultFactory.owner(), _fee);
 
         ylNFTERC1155.safeTransferFrom(address(this), msg.sender, _tokenId, _amount, "");
         emit RevertTransferNftFromVaultToWalletERC1155(address(this), msg.sender, _tokenId, _amount, _fee, block.timestamp);
