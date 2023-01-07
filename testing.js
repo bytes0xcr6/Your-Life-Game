@@ -416,6 +416,7 @@ describe("Deployment", function () {
       );
 
       // SET TOURNAMENT FEE, PAY AND CHECK IF PAID.
+      const tournamentFee = 50;
       await contestGame.setTournamentFee(1, tournamentFee);
       console.log(
         `\n✅ Tournament Fee set for ${await contestGame.getTournamentFee(
@@ -427,7 +428,6 @@ describe("Deployment", function () {
       console.log("Balance addr3 is:", await ylt.balanceOf(addr3.address));
 
       // Approve ContestGame to manage user´s YLT
-      const tournamentFee = 50;
       await ylt.connect(addr2).approve(contestGame.address, tournamentFee);
       await ylt.connect(addr3).approve(contestGame.address, tournamentFee);
 
