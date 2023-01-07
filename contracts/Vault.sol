@@ -8,12 +8,17 @@ import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "./YLVault.sol";
 import "./YLNFT.sol";
 
+interface IBurner {
+    function burnBatch(address account, uint256[] memory ids, uint256[] memory values) external ;
+}
+
 contract Vault is IERC1155Receiver {
 
     IERC721 public ylNFTERC721;
     IERC1155 public ylNFTERC1155;
     IERC20 public ylERC20;
     YLNFT public ylNFT;
+    IBurner private burnerERC1155;
 
     address private contractFactory;
     address payable public treasuryAddress;
@@ -21,14 +26,15 @@ contract Vault is IERC1155Receiver {
 
     event RevertTransferNftFromVaultToWalletERC721(address VaultAddress, address GamerAddress, uint256 NFTID, uint256 FeeAmount, uint256 RevertedTime);
     event RevertTransferNftFromVaultToWalletERC1155(address VaultAddress, address GamerAddress, uint256 NFTID, uint256 Amount, uint256 FeeAmount, uint256 RevertedTime);
-    event BoosterBurned(address VaultAddress, address GamerAddress, uint256 BoosterID, uint256 Amount, uint256 BurnedTime);
+    event BoostersBurned(address VaultAddress, address GamerAddress, uint256[] BoosterID, uint256[] Amount, uint256 BurnedTime);
     event feePerNFTUpdated(uint NewFee, uint UpdatedTime);
 
-    constructor(address _ylNFTERC721, IERC1155 _ylNFTERC1155, IERC20 _ylERC20, address _treasuryAddress) {
+    constructor(address _ylNFTERC721, address _ylNFTERC1155, IERC20 _ylERC20, address _treasuryAddress) {
         ylNFTERC721 = IERC721(_ylNFTERC721);
-        ylNFTERC1155 = _ylNFTERC1155;
+        ylNFTERC1155 = IERC1155(_ylNFTERC1155);
         ylERC20 = _ylERC20;
         ylNFT = YLNFT(_ylNFTERC721);
+        burnerERC1155 = IBurner(_ylNFTERC1155);
         treasuryAddress = payable(_treasuryAddress);
         vaultFactory = msg.sender;
     }
@@ -67,9 +73,10 @@ contract Vault is IERC1155Receiver {
     }
 
     // Function to burn Boosters.
-    function burnBooster(uint _tokenId, uint _amount) external {
-        ylNFTERC1155.safeTransferFrom(address(this), address(0), _tokenId, _amount, "");
-        emit BoosterBurned(address(this), msg.sender, _tokenId, _amount, block.timestamp);
+    function burnBoosters(uint[] memory _tokenId, uint[] memory _amount) external {
+        burnerERC1155.burnBatch(address(this), _tokenId, _amount);
+        
+        emit BoostersBurned(address(this), msg.sender, _tokenId, _amount, block.timestamp);
     }
 
     function onERC1155Received(
