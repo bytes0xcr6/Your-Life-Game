@@ -39,14 +39,13 @@ contract YLVault is Ownable{
     // Transfers ERC721 (NFT) from Wallet to Personal Vault.
     function storeNftFromWalletToVaultERC721(address _gamer, uint256[] memory _tokenIds) external {
         require(_tokenIds.length > 0, "It mustn't 0");
-
         if(vaultContract[_gamer] == address(0x0)) {
-            Vault newVault = new Vault(address(ylNFTERC721), ylNFTERC1155, ylERC20, owner());
+            Vault newVault = new Vault(address(ylNFTERC721), address(ylNFTERC1155), ylERC20, owner());
             vaultContract[_gamer] = address(newVault);
         }
         for(uint i = 0; i < _tokenIds.length; i++)
         {
-        require(ylNFTERC721.ownerOf(_tokenIds[i]) == msg.sender, "You do not own this NFTs");
+            require(ylNFTERC721.ownerOf(_tokenIds[i]) == msg.sender, "You do not own this NFTs");
 
             string memory _category = YLNFT(address(ylNFTERC721)).getCategory(_tokenIds[i]);
             ylNFTERC721.transferFrom(msg.sender, vaultContract[_gamer], _tokenIds[i]);
@@ -66,7 +65,7 @@ contract YLVault is Ownable{
         require(ylNFTERC1155.balanceOf(msg.sender, _tokenId) <= _amount, "You need more Boosters");
     
         if(vaultContract[_gamer] == address(0x0)) {
-            Vault newVault = new Vault((address(ylNFTERC721)), ylNFTERC1155, ylERC20, owner());
+            Vault newVault = new Vault((address(ylNFTERC721)), address(ylNFTERC1155), ylERC20, owner());
             vaultContract[_gamer] = address(newVault);
         }
         
