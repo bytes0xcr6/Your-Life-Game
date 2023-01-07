@@ -15,7 +15,6 @@ contract ContestGame {
     IERC20 public ylERC20;
     YLProxy public ylProxy;
     YLVault public vaultAddress;
-    address public treasuryAddress;
     uint public tokensNeededPlay;
 
     /// @dev Match struct to store the match info
@@ -111,7 +110,7 @@ contract ContestGame {
     // Pay YLT fee to be elegible for a tournament, passing the tournament ID.
     function payTournamentFee(uint8 _tournamentID) external {
         require(!feePaid[_tournamentID][msg.sender], "You have already paid the fee");
-        ylERC20.transferFrom(msg.sender, treasuryAddress, tournamentFee[_tournamentID]);
+        ylERC20.transferFrom(msg.sender, vaultAddress.treasuryAddress(), tournamentFee[_tournamentID]);
         feePaid[_tournamentID][msg.sender] = true;
         emit TournamentFeePaid(msg.sender, _tournamentID, block.timestamp);
     }
