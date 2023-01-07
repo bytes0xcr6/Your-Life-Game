@@ -435,7 +435,6 @@ describe("Deployment", function () {
       await ylt.connect(addr2).approve(contestGame.address, tournamentFee);
       await ylt.connect(addr3).approve(contestGame.address, tournamentFee);
 
-      // ----- PROBLEMA!!!!! LOS USUARIOS TIENEN BALANCE, PERO NO DEJA PAGAR LA TOURNAMENT FEE, INCLUSO DANDO PERMISOS!!!------
       await contestGame.connect(addr2).payTournamentFee(1);
       await contestGame.connect(addr3).payTournamentFee(1);
       console.log("\n✅ Addr2 & Addr3 paid the Tournament Fee ");
@@ -448,7 +447,7 @@ describe("Deployment", function () {
       const resultMatch = await contestGame.getMatch("Soccer", 0);
       console.log("\n✅ The winner is:", resultMatch.winner);
 
-      // WITHDRAW ERC721 FROM VAULT AND PAY FEES
+      // REVERT ERC721 FROM VAULT, Approve Subvault AND PAY FEES for reverting NFTs
       const balanceOwnerYLTBeforeNFTWithdrawn = await ylt.balanceOf(
         Owner.address
       );
@@ -456,7 +455,7 @@ describe("Deployment", function () {
       const nftsToRevert = [1, 2];
 
       console.log(
-        "Fees a pagar withdrawn NFTS",
+        "Fees for withdrawing 2 NFTS",
         (await ylVault.revertNFTComision()) * nftsToRevert.length
       );
 
@@ -471,15 +470,11 @@ describe("Deployment", function () {
         await ylt.allowed(addr2.address, subVaultAddr2.address)
       );
 
-      console.log("\n✅Addr2 has reverted from SubVault the NFTs 1 & 2");
+      console.log("\n✅Addr2 has reverted from his SubVault the NFTs 1 & 2");
 
       const balanceOwnerYLTAfterNFTWithdrawn = await ylt.balanceOf(
         Owner.address
       );
-
-      // require(balanceOwnerYLTAfterNFTWithdrawn.toString()).to.not.equal(
-      //   balanceOwnerYLTBeforeNFTWithdrawn.toString()
-      // );
 
       console.log(balanceOwnerYLTBeforeNFTWithdrawn);
 
@@ -488,7 +483,31 @@ describe("Deployment", function () {
           nftsToRevert.length * revertFee
         } YLT, Before he had ${balanceOwnerYLTBeforeNFTWithdrawn} & now has ${balanceOwnerYLTAfterNFTWithdrawn}`
       );
-      // WITHDRAW ERC721 FROM VAULT AND PAY FEES
+
+      // REVERT ERC1155 FROM VAULT, Approve Subvault AND PAY FEES for reverting Boosters
+      await subVaultAddr2
+        .connect(addr2)
+        .revertNftFromVaultToWalletERC1155(1, "Soccer", 1);
+
+      console.log("\n✅ Addr2 has reverted 1 Booster from his Subvault");
+      const balanceOwnerYLTAfterBoosterWithdrawn = await ylt.balanceOf(
+        Owner.address
+      );
+
+      console.log(
+        `The Owner/Treasury balance has increased ${
+          1 * revertFee
+        } YLT, Before he had ${balanceOwnerYLTAfterNFTWithdrawn} & now has ${balanceOwnerYLTAfterBoosterWithdrawn}`
+      );
+
+      //TRY TO START A GAME WITH NOT THE MINIMUM OF PLAYERS PER CATEGORY
+      await expect(
+        contestGame.play(addr2.address, 10, addr3.address, 11, "Soccer", 1)
+      ).to.be.reverted;
+
+      console.log(
+        "\n🛡 Reverted if Addr2 tries to play with less than the minimum of players per category"
+      );
     });
   });
 });
@@ -496,11 +515,6 @@ describe("Deployment", function () {
 /* 
 MISING ON THE TEST:
 
------SUBVAULT CONTRACT -----------------------
-Withdraw from subvault NFTF & BOOSTERS. CHECK HOW TO GET ABI FROM SUBVAULT CONTRACT!!!!!.
-
-------- CONTEST GAME CONTRACT ------------------
-try to start a game with subvault empty. (Expect error)
 
   -------- AUCTION CONTRACT -------------
   it may needs ERC1155 receiver.
