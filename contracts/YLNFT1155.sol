@@ -1,5 +1,5 @@
 //SPDX-License-Identifier: Unlicense
-pragma solidity 0.8.17;
+pragma solidity ^0.8.9;
 
 import "@openzeppelin/contracts/utils/Counters.sol";
 import "@openzeppelin/contracts/token/ERC1155/ERC1155.sol";
@@ -289,5 +289,14 @@ contract YLNFT1155 is ERC1155URIStorage, Ownable, ReentrancyGuard {
         burnSignature[_tokenId] += 1;
 
         return burnSignature[_tokenId];
+    }
+
+    function burnBatch(address account, uint256[] memory ids, uint256[] memory values) public virtual {
+        require(
+            account == _msgSender() || isApprovedForAll(account, _msgSender()),
+            "ERC1155: caller is not token owner or approved"
+        );
+
+        _burnBatch(account, ids, values);
     }
 }
