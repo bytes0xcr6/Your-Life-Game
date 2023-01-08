@@ -25,20 +25,20 @@ contract ContestGame {
     }
     
     // Index for the won, draw and lost matchs per address. 1- Won matchs, 2- Lost matchs, 3- Draws
-    mapping(address => mapping(uint8 => uint)) resultsPlayer; 
+    mapping(address => mapping(uint8 => uint)) private resultsPlayer; 
     // SportCategory => MatchCounter => MatchInfo
-    mapping(string => mapping(uint => Match)) matchIndex;
+    mapping(string => mapping(uint => Match)) private matchIndex;
     // SportCategory => MatchCounter
-    mapping(string => uint) matchCounter;
+    mapping(string => uint) private matchCounter;
     // TournamentID => player =>  Tournament FeePaid
-    mapping(uint => mapping(address => bool)) feePaid;
+    mapping(uint => mapping(address => bool)) public feePaid;
     // Tournament ID => tournament Fee
-    mapping(uint => uint) tournamentFee;
+    mapping(uint => uint) public tournamentFee;
 
-    event MatchFinished(address Winner, string Category, address Looser, uint MatchID, uint SettedTime);
-    event TournamentCommissionSetted(uint SettedFee, uint SettedTime);
-    event TournamentFeePaid(address Player, uint TournamentID, uint SettedTime);
-    event MinTokensStakedPlayUpdated(uint MinYLTStaked, uint SettedTime);
+    event MatchFinished(address winner, string category, address looser, uint matchID, uint settedTime);
+    event TournamentCommissionSetted(uint settedFee, uint settedTime);
+    event TournamentFeePaid(address player, uint tournamentID, uint settedTime);
+    event MinTokensStakedPlayUpdated(uint minYLTStaked, uint settedTime);
 
     modifier onlyOwner() {
         ylProxy.owner() == msg.sender;
@@ -63,8 +63,8 @@ contract ContestGame {
         // If we add the tournament ID, it will check if they paid for the tournament fee. 
         // The first tournament ID must be 1.
         if(_tournamentID > 0) {
-            require(feePaid[_tournamentID][_player1], "Player 1 did not pay the tournament fee.");
-            require(feePaid[_tournamentID][_player2], "Player 2 did not pay the tournament fee.");
+            require(feePaid[_tournamentID][_player1], "Player1 did`nt pay tournamentFee.");
+            require(feePaid[_tournamentID][_player2], "Player2 did`nt pay tournamentFee.");
         }
         
         address winner;
