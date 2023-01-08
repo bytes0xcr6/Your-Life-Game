@@ -21,10 +21,9 @@ contract Vault is IERC1155Receiver {
     IBurner private burnerERC1155;
     YLVault public vaultFactory;
 
-    event RevertedERC721(address VaultAddr, address GamerAddr, uint256 NFTID, uint256 Fee, uint256 RevertTime);
-    event RevertedERC1155(address VaultAddr, address GamerAddr, uint256 NFTID, uint256 Amount, uint256 Fee, uint256 RevertTime);
-    event BoostersBurned(address VaultAddr, address GamerAddr, uint256[] BoosterID, uint256[] Amount, uint256 BurnTime);
-    event feePerNFTUpdated(uint NewFee, uint UpdateTime);
+    event RevertedERC721(address vaultAddr, address gamerAddr, uint256 nFTID, uint256 fee, uint256 revertTime);
+    event RevertedERC1155(address vaultAddr, address gamerAddr, uint256 nFTID, uint256 amount, uint256 fee, uint256 revertTime);
+    event BoostersBurned(address vaultAddr, address gamerAddr, uint256[] boosterID, uint256[] Amount, uint256 burnTime);
 
     constructor(address _ylNFTERC721, address _ylNFTERC1155, address _ylERC20) {
         ylNFTERC721 = IERC721(_ylNFTERC721);
