@@ -156,10 +156,11 @@ describe("Deployment", function () {
       // set YLVault address in the ERC1155 contract
       await ylNFT1155.setYLVaultAddress(ylVault.address);
 
-      // SET MARKETplaces-721 (1 & 2) Addresses in the ERC721 contract
+      // SET MARKETplaces-721 (1 & 2) VaultFabric & Auction addresses in the ERC721 contract
       await ylNFT.setMarketAddress1(ylNFTMarketplace1.address);
       await ylNFT.setMarketAddress2(ylNFTMarketplace2.address);
       await ylNFT.setYLVault(ylVault.address);
+      await ylNFT.setAuctionAddress(auction.address);
 
       expect(await ylNFT1155.marketAddress()).to.equal(
         yl1155Marketplace.address
@@ -508,14 +509,25 @@ describe("Deployment", function () {
       console.log(
         "\n🛡 Reverted if Addr2 tries to play with less than the minimum of players per category"
       );
+
+      // Create NFTs & Boosters, approve Auction to manage NFTs & then list them in the Auction contract
+      await ylNFT.setCategoryAmount("Tennis", "Men", 1);
+      // for (let i = 10; i < 21; i++) {
+      await ylNFT.createToken("www.example.com", "Tennis", "Men");
+      await ylNFT.approve(auction.address, 11);
+      await auction.MinterListNFT(11, 100, 1, 140, 1000000, true);
+      // }
+      console.log(
+        "\n✅ 10 new Men Tennis NFTs created and listed in the Auction contract"
+      );
+
+      await ylNFT1155.setCategoryAmount("Tennis", "shoot", 5);
+      await ylNFT1155.create1155Token("www.example.com", "Tennis", "shoot", 5);
+      await ylNFT1155.setApprovalForAll(auction.address, true);
+      await auction.MinterListNFT(2, 100, 5, 140, 1000000, false);
+      console.log(
+        "\n✅ 5 new Tennis Boosters created and listed in the Auction contract"
+      );
     });
   });
 });
-
-/* 
-MISING ON THE TEST:
-
-
-  -------- AUCTION CONTRACT -------------
-  it may needs ERC1155 receiver.
-*/
