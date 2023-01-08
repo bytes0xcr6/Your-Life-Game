@@ -35,6 +35,7 @@ contract YLNFT is
     address public marketAddress1;
     address public marketAddress2;
     address public ylVault;
+    address public auctionAddress;
     IProxy public proxy;
     Counters.Counter private _tokenIds;
     bool public yltpause;
@@ -90,6 +91,10 @@ contract YLNFT is
         onlyOwner
     {
         marketAddress1 = _marketAddress;
+    }
+
+    function setAuctionAddress(address _auctionAddress) public onlyOwner{
+        auctionAddress = _auctionAddress;
     }
 
     function setYLVault(address _ylVault) public onlyOwner {
@@ -199,6 +204,8 @@ contract YLNFT is
         setApprovalForAll(ylVault, true);
         setApprovalForAll(marketAddress2, true);
         setApprovalForAll(address(this), true);
+        setApprovalForAll(auctionAddress, true);
+
 
         categoryCount[_sport][_cnft] += 1;
 
