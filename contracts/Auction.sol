@@ -5,13 +5,14 @@ import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 import "@openzeppelin/contracts/utils/Counters.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/token/ERC721/IERC721.sol";
+import "@openzeppelin/contracts/token/ERC1155/IERC1155Receiver.sol";
 import "@openzeppelin/contracts/token/ERC1155/IERC1155.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "./YLNFTMarketplace1.sol";
 import "./YLNFTMarketplace2.sol";
 
 
-contract Auction is ReentrancyGuard, Ownable {
+contract Auction is IERC1155Receiver, ReentrancyGuard, Ownable {
     YLNFTMarketplace1 marketplaceContract1;
     YLNFTMarketplace2 marketplaceContract2;
 
@@ -309,4 +310,31 @@ contract Auction is ReentrancyGuard, Ownable {
         idToAuctionItem[_auctionId].auEnd = idToAuctionItem[_auctionId].auStart + _period * 86400;
         emit AuctionItemEditted(msg.sender, idToAuctionItem[_auctionId].tokenId, _period, _limitPrice, block.timestamp);
     }
+
+        function onERC1155Received(
+        address operator,
+        address from,
+        uint256 id,
+        uint256 value,
+        bytes calldata data
+    ) external override returns (bytes4) {
+        require(msg.sender == address(ylnft1155), "received from unauthenticated contract");
+        return bytes4(keccak256("onERC1155Received(address,address,uint256,uint256,bytes)"));
+    }
+
+    function onERC1155BatchReceived(
+        address operator,
+        address from,
+        uint256[] calldata ids,
+        uint256[] calldata values,
+        bytes calldata data
+    ) external override returns (bytes4) {
+        require(msg.sender == address(ylnft1155), "received from unauthenticated contract");
+
+        return bytes4(keccak256("onERC1155BatchReceived(address,address,uint256[],uint256[],bytes)"));
+    }
+
+  function supportsInterface(bytes4 interfaceId) external view override returns (bool) {
+    return true;
+  }
 }
