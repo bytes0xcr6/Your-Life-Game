@@ -19,15 +19,15 @@ contract YLVault is Ownable{
     // player address => subStorageVault address
     mapping(address => address) public vaultContract;
     // player address => SportCategory => amountNFTs Total amount of NFTs in substorage per address and Sport.  1- Footbal, 2- Basketball, 3- Rugby (Example)
-    mapping(address => mapping (string => uint)) public NFTsCounter; 
+    mapping(address => mapping (string => uint)) public nFTsCounter; 
     // player address => SportCategory => elegible. Gamer is elegible to play, as he added at least 5 footbal players (Example)
     mapping(address => mapping (string => bool)) public elegibleGamer; 
     // SportCategory => playersNeeded. Example: Footbal: 11;
     mapping(string => uint8) public playersNeeded;
 
-    event RevertNftToWalletCommissionSetted(uint256 SettedFee, uint256 SettedTime);
-    event DepositedERC721(address From, address Gamer, address Vault, uint256 TokenId, uint256 DepositTime);
-    event DepositedERC1155(address From, address Gamer, address Vault, uint256 TokenId, uint256 Amount, uint256 DepositTime);
+    event RevertNftToWalletCommissionSetted(uint256 settedFee, uint256 settedTime);
+    event DepositedERC721(address from, address gamer, address vault, uint256 tokenId, uint256 depositTime);
+    event DepositedERC1155(address from, address gamer, address vault, uint256 tokenId, uint256 amount, uint256 depositTime);
 
     constructor(IERC721 _ylNFTERC721, IERC1155 _ylNFTERC1155, IERC20 _ylERC20) {
         ylNFTERC721 = _ylNFTERC721;
@@ -49,9 +49,9 @@ contract YLVault is Ownable{
 
             string memory _category = YLNFT(address(ylNFTERC721)).getCategory(_tokenIds[i]);
             ylNFTERC721.transferFrom(msg.sender, vaultContract[_gamer], _tokenIds[i]);
-            NFTsCounter[_gamer][_category] += 1; //Update counter for each Sport.
+            nFTsCounter[_gamer][_category] += 1; //Update counter for each Sport.
         // Update elegibility
-            if(NFTsCounter[_gamer][_category] > playersNeeded[_category]) {
+            if(nFTsCounter[_gamer][_category] > playersNeeded[_category]) {
                 elegibleGamer[_gamer][_category] = true;
             }
             emit DepositedERC721(msg.sender, _gamer, vaultContract[_gamer], _tokenIds[i], block.timestamp);
@@ -62,7 +62,7 @@ contract YLVault is Ownable{
     // Transfers ERC1155 (Boosters) from Wallet to Personal Vault.
     function storeNftFromWalletToVaultERC1155(address _gamer, uint256 _tokenId, uint256 _amount) external {
         require(_amount > 0, "It mustn't 0");
-        require(ylNFTERC1155.balanceOf(msg.sender, _tokenId) <= _amount, "You need more Boosters");
+        require(ylNFTERC1155.balanceOf(msg.sender, _tokenId) <= _amount, "Not enough Boosters");
     
         if(vaultContract[_gamer] == address(0x0)) {
             Vault newVault = new Vault((address(ylNFTERC721)), address(ylNFTERC1155), address(ylERC20));
@@ -77,9 +77,9 @@ contract YLVault is Ownable{
     // Setter from the Vault substorage Counter when we revert NFTs to Wallet. 
     function updateCounter(address _gamer, string memory _category, uint _amount) external {
         require(vaultContract[_gamer] == msg.sender, "You are not the vault owner");
-        NFTsCounter[_gamer][_category] -= _amount; 
+        nFTsCounter[_gamer][_category] -= _amount; 
         
-        if(NFTsCounter[_gamer][_category] < playersNeeded[_category]) {
+        if(nFTsCounter[_gamer][_category] < playersNeeded[_category]) {
             elegibleGamer[_gamer][_category] = false;
         }  
     }
