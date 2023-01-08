@@ -26,8 +26,8 @@ contract YLVault is Ownable{
     mapping(string => uint8) public playersNeeded;
 
     event RevertNftToWalletCommissionSetted(uint256 SettedFee, uint256 SettedTime);
-    event DepositedNftFromWalletToVaultERC721(address FromAddress, address GamerAddress, address VaultAddress, uint256 TokenId, uint256 DepositedTime);
-    event DepositedNftFromWalletToVaultERC1155(address FromAddress, address GamerAddress, address VaultAddress, uint256 TokenId, uint256 Amount, uint256 DepositedTime);
+    event DepositedERC721(address From, address Gamer, address Vault, uint256 TokenId, uint256 DepositTime);
+    event DepositedERC1155(address From, address Gamer, address Vault, uint256 TokenId, uint256 Amount, uint256 DepositTime);
 
     constructor(IERC721 _ylNFTERC721, IERC1155 _ylNFTERC1155, IERC20 _ylERC20) {
         ylNFTERC721 = _ylNFTERC721;
@@ -40,7 +40,7 @@ contract YLVault is Ownable{
     function storeNftFromWalletToVaultERC721(address _gamer, uint256[] memory _tokenIds) external {
         require(_tokenIds.length > 0, "It mustn't 0");
         if(vaultContract[_gamer] == address(0x0)) {
-            Vault newVault = new Vault(address(ylNFTERC721), address(ylNFTERC1155), ylERC20, owner());
+            Vault newVault = new Vault(address(ylNFTERC721), address(ylNFTERC1155), address(ylERC20));
             vaultContract[_gamer] = address(newVault);
         }
         for(uint i = 0; i < _tokenIds.length; i++)
@@ -54,7 +54,7 @@ contract YLVault is Ownable{
             if(NFTsCounter[_gamer][_category] > playersNeeded[_category]) {
                 elegibleGamer[_gamer][_category] = true;
             }
-            emit DepositedNftFromWalletToVaultERC721(msg.sender, _gamer, vaultContract[_gamer], _tokenIds[i], block.timestamp);
+            emit DepositedERC721(msg.sender, _gamer, vaultContract[_gamer], _tokenIds[i], block.timestamp);
         }
 
     }
@@ -65,13 +65,13 @@ contract YLVault is Ownable{
         require(ylNFTERC1155.balanceOf(msg.sender, _tokenId) <= _amount, "You need more Boosters");
     
         if(vaultContract[_gamer] == address(0x0)) {
-            Vault newVault = new Vault((address(ylNFTERC721)), address(ylNFTERC1155), ylERC20, owner());
+            Vault newVault = new Vault((address(ylNFTERC721)), address(ylNFTERC1155), address(ylERC20));
             vaultContract[_gamer] = address(newVault);
         }
         
         ylNFTERC1155.safeTransferFrom(msg.sender, vaultContract[_gamer], _tokenId, _amount, "");
 
-        emit DepositedNftFromWalletToVaultERC1155(msg.sender, _gamer, vaultContract[_gamer], _tokenId, _amount, block.timestamp);
+        emit DepositedERC1155(msg.sender, _gamer, vaultContract[_gamer], _tokenId, _amount, block.timestamp);
     }
 
     // Setter from the Vault substorage Counter when we revert NFTs to Wallet. 
