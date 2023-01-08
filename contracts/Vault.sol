@@ -21,10 +21,10 @@ contract Vault is IERC1155Receiver {
     IBurner private burnerERC1155;
     YLVault public vaultFactory;
 
-    event RevertTransferNftFromVaultToWalletERC721(address VaultAddress, address GamerAddress, uint256 NFTID, uint256 FeeAmount, uint256 RevertedTime);
-    event RevertTransferNftFromVaultToWalletERC1155(address VaultAddress, address GamerAddress, uint256 NFTID, uint256 Amount, uint256 FeeAmount, uint256 RevertedTime);
-    event BoostersBurned(address VaultAddress, address GamerAddress, uint256[] BoosterID, uint256[] Amount, uint256 BurnedTime);
-    event feePerNFTUpdated(uint NewFee, uint UpdatedTime);
+    event RevertedERC721(address VaultAddr, address GamerAddr, uint256 NFTID, uint256 Fee, uint256 RevertTime);
+    event RevertedERC1155(address VaultAddr, address GamerAddr, uint256 NFTID, uint256 Amount, uint256 Fee, uint256 RevertTime);
+    event BoostersBurned(address VaultAddr, address GamerAddr, uint256[] BoosterID, uint256[] Amount, uint256 BurnTime);
+    event feePerNFTUpdated(uint NewFee, uint UpdateTime);
 
     constructor(address _ylNFTERC721, address _ylNFTERC1155, address _ylERC20) {
         ylNFTERC721 = IERC721(_ylNFTERC721);
@@ -48,7 +48,7 @@ contract Vault is IERC1155Receiver {
             string memory _category = ylNFT.getCategory(_tokenIds[i]);
             ylNFTERC721.transferFrom(address(this), msg.sender, _tokenIds[i]); 
             YLVault(vaultFactory).updateCounter(msg.sender, _category, _tokenIds.length); 
-            emit RevertTransferNftFromVaultToWalletERC721(address(this), msg.sender, _tokenIds[i], _fee, block.timestamp);
+            emit RevertedERC721(address(this), msg.sender, _tokenIds[i], _fee, block.timestamp);
         }
     }
 
@@ -64,7 +64,7 @@ contract Vault is IERC1155Receiver {
         ylERC20.transferFrom(msg.sender, vaultFactory.owner(), _fee);
 
         ylNFTERC1155.safeTransferFrom(address(this), msg.sender, _tokenId, _amount, "");
-        emit RevertTransferNftFromVaultToWalletERC1155(address(this), msg.sender, _tokenId, _amount, _fee, block.timestamp);
+        emit RevertedERC1155(address(this), msg.sender, _tokenId, _amount, _fee, block.timestamp);
     }
 
     // Function to burn Boosters.
