@@ -45,22 +45,23 @@ contract ContestGame {
         _;
     }
 
-    constructor(IERC721 _ylNFTERC721, IERC1155 _ylNFTERC1155, IERC20 _ylERC20, YLProxy _ylProxy, YLVault _vaultAddress) {
+    constructor(IERC721 _ylNFTERC721, IERC1155 _ylNFTERC1155, IERC20 _ylERC20, YLProxy _ylProxy, YLVault _vault) {
         ylNFTERC721 = _ylNFTERC721;
         ylNFTERC1155 = _ylNFTERC1155;
         ylERC20 = _ylERC20;
         ylProxy = _ylProxy;
-        vaultAddress = _vaultAddress;
+        vaultAddress = _vault;
     }
 
     // Play function, If we leave the _tournament parameter as 0 it will take it as a daily game. 
     function play(address _player1, uint _score1, address _player2, uint _score2, string memory _category, uint8 _tournamentID) external onlyOwner{
-        require(ylProxy.totalStakedAmount(_player1, address(ylERC20)) >= tokensNeededPlay, "You need to stake more YLT");
-        require(ylProxy.totalStakedAmount(_player2, address(ylERC20)) >= tokensNeededPlay, "You need to stake more YLT");
+        require(ylProxy.totalStakedAmount(_player1, address(ylERC20)) >= tokensNeededPlay, "Stake more YLT");
+        require(ylProxy.totalStakedAmount(_player2, address(ylERC20)) >= tokensNeededPlay, "Stake more YLT");
         require(YLVault(vaultAddress).checkElegible(_player1, _category) == true, "You are not elegible.");
         require(YLVault(vaultAddress).checkElegible(_player2, _category) == true, "You are not elegible.");
 
-        // If we add the tournament ID, it will check if they paid for the tournament fee. The first tournament ID must be 1.
+        // If we add the tournament ID, it will check if they paid for the tournament fee. 
+        // The first tournament ID must be 1.
         if(_tournamentID > 0) {
             require(feePaid[_tournamentID][_player1], "Player 1 did not pay the tournament fee.");
             require(feePaid[_tournamentID][_player2], "Player 2 did not pay the tournament fee.");
