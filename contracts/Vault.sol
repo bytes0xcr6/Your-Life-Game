@@ -59,10 +59,10 @@ contract Vault is IERC1155Receiver {
         uint256 _fee = YLVault(vaultFactory).revertNFTComision() * _amount;
         require(ylERC20.balanceOf(msg.sender) >= _fee, "Insufficient balance for fee");
         //Update counter for each Sport.
-        YLVault(vaultFactory).updateCounter(msg.sender, _category, _amount);
         ylERC20.transferFrom(msg.sender, vaultFactory.owner(), _fee);
 
         ylNFTERC1155.safeTransferFrom(address(this), msg.sender, _tokenId, _amount, "");
+        YLVault(vaultFactory).updateCounter(msg.sender, _category, _amount);
         emit RevertedERC1155(address(this), msg.sender, _tokenId, _amount, _fee, block.timestamp);
     }
 
