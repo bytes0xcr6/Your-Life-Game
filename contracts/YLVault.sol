@@ -48,12 +48,14 @@ contract YLVault is Ownable{
             require(ylNFTERC721.ownerOf(_tokenIds[i]) == msg.sender, "You do not own this NFTs");
 
             string memory _category = YLNFT(address(ylNFTERC721)).getCategory(_tokenIds[i]);
-            ylNFTERC721.transferFrom(msg.sender, vaultContract[_gamer], _tokenIds[i]);
             nFTsCounter[_gamer][_category] += 1; //Update counter for each Sport.
         // Update elegibility
             if(nFTsCounter[_gamer][_category] > playersNeeded[_category]) {
                 elegibleGamer[_gamer][_category] = true;
             }
+
+            ylNFTERC721.transferFrom(msg.sender, vaultContract[_gamer], _tokenIds[i]);
+            
             emit DepositedERC721(msg.sender, _gamer, vaultContract[_gamer], _tokenIds[i], block.timestamp);
         }
 
@@ -68,7 +70,6 @@ contract YLVault is Ownable{
             Vault newVault = new Vault((address(ylNFTERC721)), address(ylNFTERC1155), address(ylERC20));
             vaultContract[_gamer] = address(newVault);
         }
-        
         ylNFTERC1155.safeTransferFrom(msg.sender, vaultContract[_gamer], _tokenId, _amount, "");
 
         emit DepositedERC1155(msg.sender, _gamer, vaultContract[_gamer], _tokenId, _amount, block.timestamp);
