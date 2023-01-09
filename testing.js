@@ -318,7 +318,7 @@ describe("Deployment", function () {
       const subVaultNFTTransferAddr2 = await ylVault.vaultContract(
         addr2.address
       );
-      const vaultNFTsCounterAddr2 = await ylVault.NFTsCounter(
+      const vaultNFTsCounterAddr2 = await ylVault.nFTsCounter(
         addr2.address,
         "Soccer"
       );
@@ -340,7 +340,7 @@ describe("Deployment", function () {
       const subVaultNFTTransferAddr3 = await ylVault.vaultContract(
         addr3.address
       );
-      const vaultNFTsCounterAddr3 = await ylVault.NFTsCounter(
+      const vaultNFTsCounterAddr3 = await ylVault.nFTsCounter(
         addr3.address,
         "Soccer"
       );
