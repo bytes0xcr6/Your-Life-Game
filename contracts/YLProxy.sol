@@ -14,6 +14,7 @@ contract YLProxy is ReentrancyGuard, Ownable {
     bool public paused;
 
     IERC20 public ylt;
+    address public nftAddress;
 
     constructor(address _yltAddress) {
         _ylOwner = msg.sender;
@@ -30,6 +31,8 @@ contract YLProxy is ReentrancyGuard, Ownable {
     mapping(address => bool) public burnableAccounts;
     mapping(address => bool) public pausableAccounts;
     mapping(address => bool) public transferableAccounts;
+    mapping(address => bool) public isAthlete;
+    mapping(address => bool) public athleteMinted;
 
     //events
     event DepositStake(
@@ -44,13 +47,22 @@ contract YLProxy is ReentrancyGuard, Ownable {
         address withdrawContract,
         address tokenContract
     );
-
     event GrantACLto(
         address indexed _superadmin,
         address indexed admin,
         uint256 timestamp
     );
     event RemoveACLfrom(
+        address indexed _superadmin,
+        address indexed admin,
+        uint256 timestamp
+    );
+    event AtheleteSet(
+        address indexed _superadmin,
+        address indexed admin,
+        uint256 timestamp
+    );
+    event RemovedAthelete(
         address indexed _superadmin,
         address indexed admin,
         uint256 timestamp
@@ -63,6 +75,16 @@ contract YLProxy is ReentrancyGuard, Ownable {
         returns (bool)
     {
         ylt = IERC20(_yltToken);
+        return true;
+    }
+
+    // ERC721 NFT address
+    function setNFTAddress(address _nftAddress)
+        external
+        onlyOwner
+        returns (bool)
+    {
+        nftAddress = _nftAddress;
         return true;
     }
 
@@ -129,6 +151,17 @@ contract YLProxy is ReentrancyGuard, Ownable {
         }
     }
 
+    // Athlete
+    function setAthlete(address _address, bool _value) public onlyOwner{
+        if (_value == true) {
+            isAthlete[_address] = _value;
+            emit AtheleteSet(msg.sender, _address, block.timestamp);
+        } else {
+            isAthlete[_address] = _value;
+            emit RemovedAthelete(msg.sender, _address, block.timestamp);
+        }
+    }
+
     //pausable
     function accessPause(address _address, bool _value) public onlyOwner {
         if (_value == true) {
@@ -149,6 +182,13 @@ contract YLProxy is ReentrancyGuard, Ownable {
             transferableAccounts[_address] = _value;
             emit RemoveACLfrom(msg.sender, _address, block.timestamp);
         }
+    }
+
+    function athleteMintStatus(address _address, bool _value) external returns(bool){
+        require(msg.sender == _ylOwner || msg.sender == nftAddress, "Not allowed");
+
+        athleteMinted[_address] = _value;
+        return(true);        
     }
 
     function isMintableAccount(address _address) external view returns (bool) {
@@ -193,6 +233,21 @@ contract YLProxy is ReentrancyGuard, Ownable {
         } else {
             return false;
         }
+    }
+
+    function isAthleteAccount(address _address) external view returns (bool) {
+        if (
+            stakedAmount[_address][address(ylt)] >= sufficientstakeamount &&
+            isAthlete[_address] == true
+        ) {
+            return true;
+        } else {
+            return false;
+        }
+    }
+    
+    function athleteMintCheck(address _address) external view returns (bool) {
+        return athleteMinted[_address];
     }
 
     function totalStakedAmount(address _user, address _contract) external view returns(uint){
