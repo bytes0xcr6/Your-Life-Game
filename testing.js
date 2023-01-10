@@ -177,6 +177,8 @@ describe("Deployment", function () {
       const minToStake = "100000000000000000000";
       // Approve to manage.
       await ylt.approve(ylProxy.address, minToStake);
+      await ylProxy.setNFTAddress(ylNFT.address);
+
       await ylProxy.depositYLT(minToStake);
       expect(
         await ylProxy.totalStakedAmount(Owner.address, ylt.address)
@@ -528,6 +530,43 @@ describe("Deployment", function () {
       console.log(
         "\n✅ 5 new Tennis Boosters created and listed in the Auction contract"
       );
+    });
+
+    it("Set Category, set Athlete account and mint", async () => {
+      const {
+        Owner,
+        ylt,
+        ylNFT1155,
+        yl1155Marketplace,
+        ylNFTMarketplace1,
+        ylNFTMarketplace2,
+        contestGame,
+        auction,
+        ylNFT,
+        ylProxy,
+        ylVault,
+        addr1,
+        addr2,
+        addr3,
+      } = await loadFixture(deploymentAll);
+
+      const minToStake = "100000000000000000000";
+
+      await ylt.approve(ylProxy.address, minToStake);
+      await ylt.transfer(addr3.address, "200000000000000000000");
+      await ylt.connect(addr3).approve(ylProxy.address, minToStake);
+      await ylProxy.connect(addr3).depositYLT(minToStake);
+
+      await ylNFT.setCategoryAmount("Tennis", "Men", 2);
+      console.log("\n✅ NFT Category Tennis/Men created with a maximum of 2");
+
+      await ylProxy.setAthlete(addr3.address, true);
+
+      await ylNFT.connect(addr3).createToken("example", "Tennis", "Men");
+      console.log("Tennis NFT created from Athlete");
+
+      expect(await ylNFT.connect(addr3).createToken("example", "Tennis", "Men"))
+        .to.be.reverted;
     });
   });
 });
