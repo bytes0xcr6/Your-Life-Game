@@ -68,6 +68,7 @@ contract Vault is IERC1155Receiver {
 
     // Function to burn Boosters.
     function burnBoosters(uint[] memory _tokenId, uint[] memory _amount) external {
+        require(YLVault(vaultFactory).vaultContract(msg.sender) == address(this), "You`r not the subVault owner"); 
         burnerERC1155.burnBatch(address(this), _tokenId, _amount);
         
         emit BoostersBurned(address(this), msg.sender, _tokenId, _amount, block.timestamp);
