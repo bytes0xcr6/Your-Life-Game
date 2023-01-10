@@ -194,7 +194,7 @@ contract YLNFT is
             proxy.isMintableAccount(msg.sender) || proxy.isAthleteAccount(msg.sender),
             "you can't mint YLT NFT, please contact the Admin"
         );
-        if(proxy.isAthleteAccount(msg.sender) && bytes(_cnft).length != 0){
+        if(proxy.isAthleteAccount(msg.sender) && bytes(_sport).length != 0){
             require(!proxy.athleteMintCheck(msg.sender), "You already minted a sportsman NFT");
             proxy.athleteMintStatus(msg.sender, true);
         }
