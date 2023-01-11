@@ -154,12 +154,11 @@ contract YLNFT is
         uint256 newTokenId = getCurrentTokenId();
         _mint(address(this), newTokenId); //NFT is kept in this contract.
         _setTokenURI(newTokenId, tokenURI);
-        setApprovalForAll(proxy.getNFTMarket1Addr(), true);
-        setApprovalForAll(proxy.getYLVaultAddr(), true);
-        setApprovalForAll(proxy.getNFTMarket2Addr(), true);
-        setApprovalForAll(address(this), true);
-        setApprovalForAll(proxy.getAuctionAddr(), true);
-
+        _setApprovalForAll(address(this), proxy.getNFTMarket1Addr(), true);
+        _setApprovalForAll(address(this), proxy.getYLVaultAddr(), true);
+        _setApprovalForAll(address(this), proxy.getNFTMarket2Addr(), true);
+        _setApprovalForAll(address(this), proxy.getAuctionAddr(), true);        
+        _approve(proxy.getAuctionAddr(), newTokenId);
 
         categoryCount[_sport][_cnft] += 1;
 
