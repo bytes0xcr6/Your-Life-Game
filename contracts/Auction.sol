@@ -72,15 +72,15 @@ contract Auction is IERC1155Receiver, ReentrancyGuard, Ownable {
         return marketplaceContract2.marketfee();
     }
 
-    //f.
+    //f. // Listing function by an Admin/Minter
     function MinterListNFT(uint256 _tokenId, uint256 _price, uint256 _amount, uint256 _limitPrice, uint256 _period, bool _isERC721) public returns(uint256) {
         require(marketplaceContract2._marketplaceOwner() == msg.sender, "You aren't the owner of marketplace");
-         
+     
         if(_isERC721){
             require(ylnft721.ownerOf(_tokenId) == msg.sender, "You haven't this token");
             require(ylnft721.getApproved(_tokenId) == address(this), "NFT must be approved to market");
             
-            ylnft721.transferFrom(msg.sender, address(this), _tokenId);
+            ylnft721.transferFrom(msg.sender, address(this), _tokenId); 
         }
         else{
             require(ylnft1155.balanceOf(msg.sender, _tokenId) >= _amount, "You haven't this token");
@@ -133,7 +133,7 @@ contract Auction is IERC1155Receiver, ReentrancyGuard, Ownable {
         return _auctionId;
     }
 
-    //g.
+    //g. Listing function by a buyer after the first sale
     function BuyerListNFT(uint256 _tokenId, uint256 _price, uint256 _amount, uint256 _limitPrice, uint256 _period, bool _isERC721) public returns(uint256) {
         if(_isERC721){
             require(ylnft721.ownerOf(_tokenId) == msg.sender, "You haven't this token");
