@@ -161,7 +161,7 @@ contract YLNFT is
         require(_to != address(0), "Can't transfer NFT721 to address(0)");
         require(ownerOf(_tokenId) == msg.sender, "Admin haven't this TokenID");
 
-        transferFrom(msg.sender, _to, _tokenId);
+        transferFrom(address(this), _to, _tokenId);
         emit Transfer721to(msg.sender, _to, _tokenId);
         return true;
     }
