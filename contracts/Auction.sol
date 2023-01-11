@@ -80,8 +80,7 @@ contract Auction is IERC1155Receiver, ReentrancyGuard, Ownable {
         require(ylproxy.isMintableAccount(msg.sender), "You aren't Minter account");   
 
         if(_isERC721){
-            require(ylnft721.ownerOf(_tokenId) == address(ylnft721), "User haven't this token ID.");
-            require(ylnft721.getApproved(_tokenId) == address(this), "NFT must be approved to market");
+            require(ylnft721.ownerOf(_tokenId) == address(ylnft721), "ylNFT contract haven't this token ID.");
             
             ylnft721.transferFrom(address(ylnft721), address(this), _tokenId); 
         }
@@ -109,8 +108,8 @@ contract Auction is IERC1155Receiver, ReentrancyGuard, Ownable {
                 block.timestamp,
                 block.timestamp + _period * 86400,
                 _price,
-                msg.sender,
-                msg.sender,
+                address(ylnft721),
+                address(ylnft721),
                 _amount,
                 _limitPrice,
                 _isERC721,
@@ -123,8 +122,8 @@ contract Auction is IERC1155Receiver, ReentrancyGuard, Ownable {
                 block.timestamp,
                 block.timestamp + _period * 86400,
                 _price,
-                msg.sender,
-                msg.sender,
+                address(ylnft1155),
+                address(ylnft1155),
                 _amount,
                 _limitPrice,
                 _isERC721,
@@ -145,6 +144,7 @@ contract Auction is IERC1155Receiver, ReentrancyGuard, Ownable {
             ylnft721.transferFrom(msg.sender, address(this), _tokenId);
         }
         else{
+            require(!ylproxy.isMintableAccount(msg.sender), "Mintable account can only list new NFTs");   
             require(ylnft1155.balanceOf(msg.sender, _tokenId) >= _amount, "You haven't this token");
             require(ylnft1155.isApprovedForAll(msg.sender, address(this)) == true, "NFT must be approved to market");
 
