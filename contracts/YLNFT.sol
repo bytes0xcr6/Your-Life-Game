@@ -1,5 +1,5 @@
 //SPDX-License-Identifier: Unlicense
-pragma solidity ^0.8.9;
+pragma solidity 0.8.17;
 
 import "@openzeppelin/contracts/utils/Counters.sol";
 import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
@@ -26,6 +26,16 @@ interface IProxy {
     function athleteMintCheck(address _address) external view returns (bool);
 
     function athleteMintStatus(address _address, bool _value) external returns(bool);
+    
+    function getNFTMarket1Addr() external view returns (address);
+    
+    function getNFTMarket2Addr() external view returns (address);
+    
+    function getYLVaultAddr() external view returns(address);
+
+    function getAuctionAddr() external view returns(address);
+
+    function getMarketERC1155Addr() external view returns(address);
 }
 
 contract YLNFT is
@@ -36,10 +46,6 @@ contract YLNFT is
     ReentrancyGuard
 {
     address payable _ylnft721Owner;
-    address public marketAddress1;
-    address public marketAddress2;
-    address public ylVault;
-    address public auctionAddress;
     IProxy public proxy;
     Counters.Counter private _tokenIds;
     bool public yltpause;
@@ -88,28 +94,6 @@ contract YLNFT is
         onlyOwner
     {
         proxy = IProxy(_proxyAddress);
-    }
-
-    function setMarketAddress1(address _marketAddress)
-        public
-        onlyOwner
-    {
-        marketAddress1 = _marketAddress;
-    }
-
-    function setAuctionAddress(address _auctionAddress) public onlyOwner{
-        auctionAddress = _auctionAddress;
-    }
-
-    function setYLVault(address _ylVault) public onlyOwner {
-        ylVault = _ylVault;
-    }
-
-    function setMarketAddress2(address _marketAddress)
-        public
-        onlyOwner
-    {
-        marketAddress2 = _marketAddress;
     }
 
     function setCategoryAmount(
@@ -206,13 +190,13 @@ contract YLNFT is
 
         incrementTokenId();
         uint256 newTokenId = getCurrentTokenId();
-        _mint(msg.sender, newTokenId);
+        _mint(address(this), newTokenId); //NFT is kept in this contract.
         _setTokenURI(newTokenId, tokenURI);
-        setApprovalForAll(marketAddress1, true);
-        setApprovalForAll(ylVault, true);
-        setApprovalForAll(marketAddress2, true);
+        setApprovalForAll(proxy.getNFTMarket1Addr(), true);
+        setApprovalForAll(proxy.getYLVaultAddr(), true);
+        setApprovalForAll(proxy.getNFTMarket2Addr(), true);
         setApprovalForAll(address(this), true);
-        setApprovalForAll(auctionAddress, true);
+        setApprovalForAll(proxy.getAuctionAddr(), true);
 
 
         categoryCount[_sport][_cnft] += 1;
