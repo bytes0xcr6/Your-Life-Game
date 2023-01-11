@@ -66,19 +66,19 @@ contract YLNFT is
         string uri;
     }
 
-    event minted721(address minter, uint256 tokenId, uint256 mintedGas);
+    event minted721(address indexed minter, uint256 tokenId, uint256 mintedGas);
     event Burned721(address indexed admin1, uint256 tokenId, uint256 burnedGas);
     event PauseContract(
-        address admin,
-        address minted721contract,
+        address indexed admin,
+        address indexed minted721contract,
         uint256 timestamp
     );
     event UnpauseContract(
-        address admin,
-        address minted721contract,
+        address indexed admin,
+        address indexed minted721contract,
         uint256 timestamp
     );
-    event Transfer721to(address admin, address recipient, uint256 tokenId);
+    event Transfer721to(address indexed admin, address indexed from, address indexed to, uint256 tokenId);
 
     constructor(IProxy _proxy)
         ERC721("YourLifeGame NFT", "YLNFT")
@@ -96,39 +96,6 @@ contract YLNFT is
         proxy = IProxy(_proxyAddress);
     }
 
-    function setCategoryAmount(
-        string memory _sport,
-        string memory _cnft,
-        uint256 _amount
-    ) public returns (bool) {
-        categoryAmount[_sport][_cnft] = _amount;
-        return true;
-    }
-
-    function deleteCategory(string memory _sport, string memory _cnft)
-        public
-        returns (bool)
-    {
-        delete categoryAmount[_sport][_cnft];
-        return true;
-    }
-
-    function getCategoryCount(string memory _sport, string memory _cnft)
-        public
-        view
-        returns (uint256)
-    {
-        return categoryCount[_sport][_cnft];
-    }
-
-    function getCategoryAmount(string memory _sport, string memory _cnft)
-        public
-        view
-        returns (uint256)
-    {
-        return categoryAmount[_sport][_cnft];
-    }
-
     function setPauseContract(bool _yltpause) public returns (bool) {
         require(
             proxy.isPauseAccount(msg.sender),
@@ -143,11 +110,7 @@ contract YLNFT is
         return true;
     }
 
-    function getPauseContract() public view returns (bool) {
-        return yltpause;
-    }
-
-    //transfer
+    //transfer after moderating
     function ylnft721Transfer(address _to, uint256 _tokenId)
         public
         nonReentrant
@@ -159,10 +122,10 @@ contract YLNFT is
         );
         require(getPauseContract() == false, "NFT721 Contract was paused!");
         require(_to != address(0), "Can't transfer NFT721 to address(0)");
-        require(ownerOf(_tokenId) == msg.sender, "Admin haven't this TokenID");
+        require(ownerOf(_tokenId) == address(this), "Contract haven't this TokenID");
 
-        transferFrom(address(this), _to, _tokenId);
-        emit Transfer721to(msg.sender, _to, _tokenId);
+        _transfer(address(this), _to, _tokenId);
+        emit Transfer721to(msg.sender, address(this), _to, _tokenId);
         return true;
     }
 
@@ -336,5 +299,42 @@ contract YLNFT is
 
     function getCategory(uint _tokenId) external view returns(string memory){
         return categoryByID[_tokenId];
+    }
+
+        function setCategoryAmount(
+        string memory _sport,
+        string memory _cnft,
+        uint256 _amount
+    ) public returns (bool) {
+        categoryAmount[_sport][_cnft] = _amount;
+        return true;
+    }
+
+    function deleteCategory(string memory _sport, string memory _cnft)
+        public
+        returns (bool)
+    {
+        delete categoryAmount[_sport][_cnft];
+        return true;
+    }
+
+    function getCategoryCount(string memory _sport, string memory _cnft)
+        public
+        view
+        returns (uint256)
+    {
+        return categoryCount[_sport][_cnft];
+    }
+
+    function getCategoryAmount(string memory _sport, string memory _cnft)
+        public
+        view
+        returns (uint256)
+    {
+        return categoryAmount[_sport][_cnft];
+    }
+
+    function getPauseContract() public view returns (bool) {
+        return yltpause;
     }
 }
