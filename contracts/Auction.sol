@@ -10,6 +10,7 @@ import "@openzeppelin/contracts/token/ERC1155/IERC1155.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "./YLNFTMarketplace1.sol";
 import "./YLNFTMarketplace2.sol";
+import "./YLProxy.sol";
 
 
 contract Auction is IERC1155Receiver, ReentrancyGuard, Ownable {
@@ -23,6 +24,7 @@ contract Auction is IERC1155Receiver, ReentrancyGuard, Ownable {
     IERC721 public ylnft721;
     IERC1155 public ylnft1155;
     IERC20 public ylt20;
+    YLProxy public ylproxy;
 
     enum AuctionState {Active, Release}
 
@@ -50,11 +52,12 @@ contract Auction is IERC1155Receiver, ReentrancyGuard, Ownable {
 
     mapping(uint256 => AuctionItem) private idToAuctionItem;
 
-    constructor(IERC721 _ylnft721, IERC1155 _ylnft1155, address _marketplaceContract1, address _marketplaceContract2, address _ylt20) {
+    constructor(IERC721 _ylnft721, IERC1155 _ylnft1155, address _marketplaceContract1, address _marketplaceContract2, address _ylt20, address _ylProxy) {
         ylnft721 = _ylnft721;
         ylnft1155 = _ylnft1155;
         marketplaceContract1 = YLNFTMarketplace1(_marketplaceContract1);
         marketplaceContract2 = YLNFTMarketplace2(_marketplaceContract2);
+        ylproxy = YLProxy(_ylProxy);
         ylt20 = IERC20(_ylt20);
     }
 
@@ -74,13 +77,13 @@ contract Auction is IERC1155Receiver, ReentrancyGuard, Ownable {
 
     //f. // Listing function by an Admin/Minter
     function MinterListNFT(uint256 _tokenId, uint256 _price, uint256 _amount, uint256 _limitPrice, uint256 _period, bool _isERC721) public returns(uint256) {
-        require(marketplaceContract2._marketplaceOwner() == msg.sender, "You aren't the owner of marketplace");
-     
+        require(ylproxy.isMintableAccount(msg.sender), "You aren't Minter account");   
+
         if(_isERC721){
-            require(ylnft721.ownerOf(_tokenId) == msg.sender, "You haven't this token");
+            require(ylnft721.ownerOf(_tokenId) == address(ylnft721), "User haven't this token ID.");
             require(ylnft721.getApproved(_tokenId) == address(this), "NFT must be approved to market");
             
-            ylnft721.transferFrom(msg.sender, address(this), _tokenId); 
+            ylnft721.transferFrom(address(ylnft721), address(this), _tokenId); 
         }
         else{
             require(ylnft1155.balanceOf(msg.sender, _tokenId) >= _amount, "You haven't this token");
