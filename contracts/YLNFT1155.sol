@@ -16,13 +16,29 @@ interface IProxy {
     function isTransferAccount(address _address) external view returns (bool);
 
     function isPauseAccount(address _address) external view returns (bool);
+    
+    function getCategory(uint _tokenId) external view returns(string memory);
+
+    function isAthleteAccount(address _address) external view returns (bool);
+
+    function athleteMintCheck(address _address) external view returns (bool);
+
+    function athleteMintStatus(address _address, bool _value) external returns(bool);
+    
+    function getNFTMarket1Addr() external view returns (address);
+    
+    function getNFTMarket2Addr() external view returns (address);
+    
+    function getYLVaultAddr() external view returns(address);
+
+    function getAuctionAddr() external view returns(address);
+
+    function getMarketERC1155Addr() external view returns(address);
 }
 
 contract YLNFT1155 is ERC1155URIStorage, Ownable, ReentrancyGuard {
     string public _baseURI;
     address public _ylnft1155Owner;
-    address public marketAddress;
-    address public ylVault;
     IProxy public proxy;
     Counters.Counter private _newtokenId;
     bool public yltpause;
@@ -73,24 +89,6 @@ contract YLNFT1155 is ERC1155URIStorage, Ownable, ReentrancyGuard {
         returns (bool)
     {
         proxy = IProxy(_proxyAddress);
-        return true;
-    }
-
-    function setMarketAddress(address _marketAddress)
-        public
-        onlyOwner
-        returns (bool)
-    {
-        marketAddress = _marketAddress;
-        return true;
-    }
-
-    function setYLVaultAddress(address _ylVault)
-        public
-        onlyOwner
-        returns (bool)
-    {
-        ylVault = _ylVault;
         return true;
     }
 
@@ -183,8 +181,8 @@ contract YLNFT1155 is ERC1155URIStorage, Ownable, ReentrancyGuard {
         _mint(msg.sender, newTokenId, _amount, "");
         _setURI(newTokenId, _tokenURI);
 
-        setApprovalForAll(marketAddress, true);
-        setApprovalForAll(ylVault, true);
+        setApprovalForAll(proxy.getMarketERC1155Addr(), true);
+        setApprovalForAll(proxy.getYLVaultAddr(), true);
         setApprovalForAll(address(this), true);
         categoryCount[_sport][_cnft] += _amount;
 
@@ -211,7 +209,7 @@ contract YLNFT1155 is ERC1155URIStorage, Ownable, ReentrancyGuard {
         _mint(_ylnft1155Owner, newTokenId, _amount, "");
         _setURI(newTokenId, _tokenURI);
 
-        setApprovalForAll(marketAddress, true);
+        setApprovalForAll(proxy.getMarketERC1155Addr(), true);
         setApprovalForAll(address(this), true);
         categoryCount[_sport][_cnft] += 1;
 
