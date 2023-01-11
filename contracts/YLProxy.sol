@@ -295,7 +295,7 @@ contract YLProxy is ReentrancyGuard, Ownable {
     }
 
     function getNFTMarket2Addr() public view returns (address){
-        return marketNFTAddress1;
+        return marketNFTAddress2;
     }
 
     function getYLVaultAddr() public view returns(address) {
