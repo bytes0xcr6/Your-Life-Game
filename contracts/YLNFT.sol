@@ -158,7 +158,6 @@ contract YLNFT is
         _setApprovalForAll(address(this), proxy.getYLVaultAddr(), true);
         _setApprovalForAll(address(this), proxy.getNFTMarket2Addr(), true);
         _setApprovalForAll(address(this), proxy.getAuctionAddr(), true);        
-        _approve(proxy.getAuctionAddr(), newTokenId);
 
         categoryCount[_sport][_cnft] += 1;
 
