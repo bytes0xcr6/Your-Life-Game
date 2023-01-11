@@ -91,7 +91,8 @@ describe("Deployment", function () {
       ylNFT1155.address,
       ylNFTMarketplace1.address,
       ylNFTMarketplace2.address,
-      ylt.address
+      ylt.address,
+      ylProxy.address
     );
     await auction.deployed();
     console.log("Auction contract deployed to:", auction.address);
@@ -150,34 +151,33 @@ describe("Deployment", function () {
       const revertFee = 30;
       await ylVault.setRevertNftToWalletCommision(revertFee);
 
-      // set MARKETplace 1155 Address in the ERC1155 contract
-      await ylNFT1155.setMarketAddress(yl1155Marketplace.address);
+      // SET contracts addresses to YLProxy contract.
+      await ylProxy.setERC1155Market(yl1155Marketplace.address);
+      await ylProxy.setYLTAddress(ylt.address);
+      await ylProxy.setMarketNFTAddress1(ylNFTMarketplace1.address);
+      await ylProxy.setMarketNFTAddress2(ylNFTMarketplace2.address);
+      await ylProxy.setYLVault(ylVault.address);
+      await ylProxy.setAuctionAddress(auction.address);
+      await ylProxy.setNFTAddress(ylNFT.address);
 
-      // set YLVault address in the ERC1155 contract
-      await ylNFT1155.setYLVaultAddress(ylVault.address);
-
-      // SET MARKETplaces-721 (1 & 2) VaultFabric & Auction addresses in the ERC721 contract
-      await ylNFT.setMarketAddress1(ylNFTMarketplace1.address);
-      await ylNFT.setMarketAddress2(ylNFTMarketplace2.address);
-      await ylNFT.setYLVault(ylVault.address);
-      await ylNFT.setAuctionAddress(auction.address);
-
-      expect(await ylNFT1155.marketAddress()).to.equal(
+      expect(await ylProxy.getMarketERC1155Addr()).to.equal(
         yl1155Marketplace.address
       );
-      console.log("\n✅ Marketplace1155 set in the ERC1155 contract");
-      expect(await ylNFT.marketAddress1()).to.equal(ylNFTMarketplace1.address);
-      expect(await ylNFT.marketAddress2()).to.equal(ylNFTMarketplace2.address);
-      console.log("✅ Marketplaces721 (1 & 2) set in the ERC721 contract");
+      expect(await ylProxy.getNFTMarket1Addr()).to.equal(
+        ylNFTMarketplace1.address
+      );
+      expect(await ylProxy.getNFTMarket2Addr()).to.equal(
+        ylNFTMarketplace2.address
+      );
 
+      console.log("✅All the contracts have been set in the YLProxy contract");
       const balanceOwners = await ylt.balanceOf(Owner.address);
-      console.log("Total balance before staking", balanceOwners);
+      console.log("\nTotal balance before staking", balanceOwners);
 
       //STAKE YLToken (Owner)
       const minToStake = "100000000000000000000";
       // Approve to manage.
       await ylt.approve(ylProxy.address, minToStake);
-      await ylProxy.setNFTAddress(ylNFT.address);
 
       await ylProxy.depositYLT(minToStake);
       expect(
@@ -274,7 +274,7 @@ describe("Deployment", function () {
       );
       expect("Soccer").to.equal(await ylNFT.getCategory(1));
 
-      // Transfer NFTs to 2 players
+      // Transfer NFTs to Addr2 & Addr3 2 players after moderating the NFTS.
       for (let i = 1; i < 6; i++) {
         await ylNFT.ylnft721Transfer(addr2.address, [i]);
       }
@@ -511,25 +511,6 @@ describe("Deployment", function () {
       console.log(
         "\n🛡 Reverted if Addr2 tries to play with less than the minimum of players per category"
       );
-
-      // Create NFTs & Boosters, approve Auction to manage NFTs & then list them in the Auction contract
-      await ylNFT.setCategoryAmount("Tennis", "Men", 1);
-      // for (let i = 10; i < 21; i++) {
-      await ylNFT.createToken("www.example.com", "Tennis", "Men");
-      await ylNFT.approve(auction.address, 11);
-      await auction.MinterListNFT(11, 100, 1, 140, 1000000, true);
-      // }
-      console.log(
-        "\n✅ 10 new Men Tennis NFTs created and listed in the Auction contract"
-      );
-
-      await ylNFT1155.setCategoryAmount("Tennis", "shoot", 5);
-      await ylNFT1155.create1155Token("www.example.com", "Tennis", "shoot", 5);
-      await ylNFT1155.setApprovalForAll(auction.address, true);
-      await auction.MinterListNFT(2, 100, 5, 140, 1000000, false);
-      console.log(
-        "\n✅ 5 new Tennis Boosters created and listed in the Auction contract"
-      );
     });
 
     it("Set Category, set Athlete account and mint", async () => {
@@ -556,17 +537,245 @@ describe("Deployment", function () {
       await ylt.transfer(addr3.address, "200000000000000000000");
       await ylt.connect(addr3).approve(ylProxy.address, minToStake);
       await ylProxy.connect(addr3).depositYLT(minToStake);
+      console.log(
+        "✅ The Owner has staked YLT:",
+        ethers.utils.formatEther(
+          await ylProxy.totalStakedAmount(Owner.address, ylt.address)
+        )
+      );
+
+      await ylNFT.setCategoryAmount("Tennis", "Men", 1);
+      console.log("\n✅ NFT Category Tennis/Men created with a maximum of 1");
+
+      await ylProxy.setAthlete(addr3.address, true);
+      expect(await ylProxy.isAthleteAccount(addr3.address)).to.equal(true);
+      console.log("\n✅Addr3 has been set as Athlete");
+
+      await ylNFT.connect(addr3).createToken("example", "Tennis", "Men");
+      console.log("✅ Tennis NFT created from Addr3(Athlete)");
+
+      await expect(ylNFT.connect(addr3).createToken("example", "Tennis", "Men"))
+        .to.be.reverted;
+
+      console.log(
+        "\n🛡 Reverted if creating more than the maximum per category"
+      );
+    });
+
+    it("Create NFTs & Boosters, approve Auction to manage NFTs & then list them in the Auction contract", async () => {
+      const {
+        Owner,
+        ylt,
+        ylNFT1155,
+        yl1155Marketplace,
+        ylNFTMarketplace1,
+        ylNFTMarketplace2,
+        contestGame,
+        auction,
+        ylNFT,
+        ylProxy,
+        ylVault,
+        addr1,
+        addr2,
+        addr3,
+      } = await loadFixture(deploymentAll);
+
+      // SET contracts addresses to YLProxy contract.
+      await ylProxy.setERC1155Market(yl1155Marketplace.address);
+      await ylProxy.setYLTAddress(ylt.address);
+      await ylProxy.setMarketNFTAddress1(ylNFTMarketplace1.address);
+      await ylProxy.setMarketNFTAddress2(ylNFTMarketplace2.address);
+      await ylProxy.setYLVault(ylVault.address);
+      await ylProxy.setAuctionAddress(auction.address);
+      await ylProxy.setNFTAddress(ylNFT.address);
+
+      //STAKE YLToken (Owner)
+      const minToStake = "100000000000000000000";
+      // Approve to manage.
+      await ylt.approve(ylProxy.address, minToStake);
+      await ylProxy.depositYLT(minToStake);
 
       await ylNFT.setCategoryAmount("Tennis", "Men", 2);
       console.log("\n✅ NFT Category Tennis/Men created with a maximum of 2");
 
-      await ylProxy.setAthlete(addr3.address, true);
+      await ylNFT.createToken("www.example.com", "Tennis", "Men");
+      await ylNFT.createToken("www.example.com", "Tennis", "Men");
+      console.log("\n✅ 2 NFT Tennis/Men created & stored in the NFT contract");
 
-      await ylNFT.connect(addr3).createToken("example", "Tennis", "Men");
-      console.log("Tennis NFT created from Athlete");
+      expect(await ylNFT.ownerOf(1)).to.equal(ylNFT.address);
 
-      expect(await ylNFT.connect(addr3).createToken("example", "Tennis", "Men"))
-        .to.be.reverted;
+      console.log(await ylNFT.isApprovedForAll(ylNFT.address, auction.address));
+
+      await auction.MinterListNFT(1, 100, 1, 140, 1000000, true);
+
+      console.log(
+        "\n✅ Owner of the NFT is the NFT contract a minteableAccount listted a new NFT after Moderating"
+      );
+
+      await ylNFT.ylnft721Transfer(addr2.address, 2);
+      await ylNFT.connect(addr2).approve(auction.address, 2);
+
+      await expect(
+        auction.connect(addr3).BuyerListNFT(2, 100, 1, 140, 1000000, true)
+      ).to.be.reverted;
+
+      await auction.connect(addr2).BuyerListNFT(2, 100, 1, 140, 1000000, true);
+
+      console.log(
+        "\n✅ 10 new Men Tennis NFTs created and listed in the Auction contract"
+      );
+
+      // await ylNFT1155.setCategoryAmount("Tennis", "shoot", 5);
+      // await ylNFT1155.create1155Token("www.example.com", "Tennis", "shoot", 5);
+      // await ylNFT1155.setApprovalForAll(auction.address, true);
+      // await auction.MinterListNFT(2, 100, 5, 140, 1000000, false);
+      // console.log(
+      //   "\n✅ 5 new Tennis Boosters created and listed in the Auction contract"
+      // );
     });
+
+    //     it("Create NFTs, approve MARKET PLACES to manage NFTs & then list them in the NFT MARKET PLACE contract", async () => {
+    //       const {
+    //         Owner,
+    //         ylt,
+    //         ylNFT1155,
+    //         yl1155Marketplace,
+    //         ylNFTMarketplace1,
+    //         ylNFTMarketplace2,
+    //         contestGame,
+    //         auction,
+    //         ylNFT,
+    //         ylProxy,
+    //         ylVault,
+    //         addr1,
+    //         addr2,
+    //         addr3,
+    //       } = await loadFixture(deploymentAll);
+
+    //       // SET contracts addresses to YLProxy contract.
+    //       await ylProxy.setERC1155Market(yl1155Marketplace.address);
+    //       await ylProxy.setYLTAddress(ylt.address);
+    //       await ylProxy.setMarketNFTAddress1(ylNFTMarketplace1.address);
+    //       await ylProxy.setMarketNFTAddress2(ylNFTMarketplace2.address);
+    //       await ylProxy.setYLVault(ylVault.address);
+    //       await ylProxy.setAuctionAddress(auction.address);
+    //       await ylProxy.setNFTAddress(ylNFT.address);
+
+    //       //STAKE YLToken (Owner)
+    //       const minToStake = "100000000000000000000";
+    //       // Approve to manage.
+    //       await ylt.approve(ylProxy.address, minToStake);
+    //       await ylProxy.depositYLT(minToStake);
+
+    //       await ylNFT.setCategoryAmount("Tennis", "Men", 2);
+    //       console.log("\n✅ NFT Category Tennis/Men created with a maximum of 2");
+
+    //       await ylNFT.createToken("www.example.com", "Tennis", "Men");
+    //       await ylNFT.createToken("www.example.com", "Tennis", "Men");
+    //       console.log("\n✅ 2 NFT Tennis/Men created & stored in the NFT contract");
+
+    //       expect(await ylNFT.ownerOf(1)).to.equal(ylNFT.address);
+
+    //       console.log(await ylNFT.isApprovedForAll(ylNFT.address, auction.address));
+
+    //       await auction.MinterListNFT(1, 100, 1, 140, 1000000, true);
+
+    //       console.log(
+    //         "\n✅ Owner of the NFT is the NFT contract a minteableAccount listted a new NFT after Moderating"
+    //       );
+
+    //       await ylNFT.ylnft721Transfer(addr2.address, 2);
+    //       await ylNFT.connect(addr2).approve(auction.address, 2);
+
+    //       await expect(
+    //         auction.connect(addr3).BuyerListNFT(2, 100, 1, 140, 1000000, true)
+    //       ).to.be.reverted;
+
+    //       await auction.connect(addr2).BuyerListNFT(2, 100, 1, 140, 1000000, true);
+
+    //       console.log(
+    //         "\n✅ 10 new Men Tennis NFTs created and listed in the Auction contract"
+    //       );
+
+    //       // await ylNFT1155.setCategoryAmount("Tennis", "shoot", 5);
+    //       // await ylNFT1155.create1155Token("www.example.com", "Tennis", "shoot", 5);
+    //       // await ylNFT1155.setApprovalForAll(auction.address, true);
+    //       // await auction.MinterListNFT(2, 100, 5, 140, 1000000, false);
+    //       // console.log(
+    //       //   "\n✅ 5 new Tennis Boosters created and listed in the Auction contract"
+    //       // );
+    //     });
+
+    //     it("Create BOOSTERs, approve MARKET PLACES to manage Boosters & then list them in the Boosters MARKET PLACE contract", async () => {
+    //       const {
+    //         Owner,
+    //         ylt,
+    //         ylNFT1155,
+    //         yl1155Marketplace,
+    //         ylNFTMarketplace1,
+    //         ylNFTMarketplace2,
+    //         contestGame,
+    //         auction,
+    //         ylNFT,
+    //         ylProxy,
+    //         ylVault,
+    //         addr1,
+    //         addr2,
+    //         addr3,
+    //       } = await loadFixture(deploymentAll);
+
+    //       // SET contracts addresses to YLProxy contract.
+    //       await ylProxy.setERC1155Market(yl1155Marketplace.address);
+    //       await ylProxy.setYLTAddress(ylt.address);
+    //       await ylProxy.setMarketNFTAddress1(ylNFTMarketplace1.address);
+    //       await ylProxy.setMarketNFTAddress2(ylNFTMarketplace2.address);
+    //       await ylProxy.setYLVault(ylVault.address);
+    //       await ylProxy.setAuctionAddress(auction.address);
+    //       await ylProxy.setNFTAddress(ylNFT.address);
+
+    //       //STAKE YLToken (Owner)
+    //       const minToStake = "100000000000000000000";
+    //       // Approve to manage.
+    //       await ylt.approve(ylProxy.address, minToStake);
+    //       await ylProxy.depositYLT(minToStake);
+
+    //       await ylNFT.setCategoryAmount("Tennis", "Men", 2);
+    //       console.log("\n✅ NFT Category Tennis/Men created with a maximum of 2");
+
+    //       await ylNFT.createToken("www.example.com", "Tennis", "Men");
+    //       await ylNFT.createToken("www.example.com", "Tennis", "Men");
+    //       console.log("\n✅ 2 NFT Tennis/Men created & stored in the NFT contract");
+
+    //       expect(await ylNFT.ownerOf(1)).to.equal(ylNFT.address);
+
+    //       console.log(await ylNFT.isApprovedForAll(ylNFT.address, auction.address));
+
+    //       await auction.MinterListNFT(1, 100, 1, 140, 1000000, true);
+
+    //       console.log(
+    //         "\n✅ Owner of the NFT is the NFT contract a minteableAccount listted a new NFT after Moderating"
+    //       );
+
+    //       await ylNFT.ylnft721Transfer(addr2.address, 2);
+    //       await ylNFT.connect(addr2).approve(auction.address, 2);
+
+    //       await expect(
+    //         auction.connect(addr3).BuyerListNFT(2, 100, 1, 140, 1000000, true)
+    //       ).to.be.reverted;
+
+    //       await auction.connect(addr2).BuyerListNFT(2, 100, 1, 140, 1000000, true);
+
+    //       console.log(
+    //         "\n✅ 10 new Men Tennis NFTs created and listed in the Auction contract"
+    //       );
+
+    //       // await ylNFT1155.setCategoryAmount("Tennis", "shoot", 5);
+    //       // await ylNFT1155.create1155Token("www.example.com", "Tennis", "shoot", 5);
+    //       // await ylNFT1155.setApprovalForAll(auction.address, true);
+    //       // await auction.MinterListNFT(2, 100, 5, 140, 1000000, false);
+    //       // console.log(
+    //       //   "\n✅ 5 new Tennis Boosters created and listed in the Auction contract"
+    //       // );
+    // });
   });
 });
