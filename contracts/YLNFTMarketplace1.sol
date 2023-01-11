@@ -75,11 +75,10 @@ contract YLNFTMarketplace1 is ReentrancyGuard, Ownable {
 
     //a. Minter listed NFT to Marketplace
     function minterListedNFT(uint256 _tokenId, uint256 _price) public returns(uint256) {
-        require(ylnft.ownerOf(_tokenId) == msg.sender, "User haven't this token ID.");
         require(proxy.isMintableAccount(msg.sender), "You aren't Minter account");
-        require(ylnft.getApproved(_tokenId) == address(this), "NFT must be approved to market");
+        require(ylnft.ownerOf(_tokenId) == address(ylnft), "ylNFT contract haven't this token ID.");
+        ylnft.transferFrom(address(ylnft), address(this), _tokenId);
 
-        ylnft.transferFrom(msg.sender, address(this), _tokenId);
 
         uint256 _itemId = 0;
         for(uint i = 1; i <= _itemIds.current(); i++) {
