@@ -99,18 +99,18 @@ contract YL1155Marketplace is IERC1155Receiver,ReentrancyGuard{
     
 
     function setVaultAddress(address _vaultaddress) public{
-        require( proxy.isSuperAdmin(msg.sender) == true,'You are not superadmin');
+        require( proxy.isSuperAdmin(msg.sender) == true,"You are not superadmin");
         vaultaddress=_vaultaddress;
     }
 
     function setComission(uint256 _comission) public{
-        require( proxy.isSuperAdmin(msg.sender) == true,'You are not superadmin');
+        require( proxy.isSuperAdmin(msg.sender) == true,"You are not superadmin");
         comission=_comission;
         emit MarketCommissionSet1155(msg.sender,_comission,block.timestamp);
     }
 
     function adminPauseUnpause(uint256 _auctionid) public{
-        require( proxy.isSuperAdmin(msg.sender) == true,'You are not superadmin');
+        require( proxy.isSuperAdmin(msg.sender) == true,"You are not superadmin");
         pauseStatus[_auctionid] = !pauseStatus[_auctionid];
     }
 
@@ -119,7 +119,7 @@ contract YL1155Marketplace is IERC1155Receiver,ReentrancyGuard{
     }
     
     function adminAuction(uint256 _tokenId,uint256 _price,uint256 _time,uint256 amount,bytes memory data)public returns(uint256){
-        require( proxy.isSuperAdmin(msg.sender) == true,'You are not superadmin');
+        require( proxy.isSuperAdmin(msg.sender) == true,"You are not superadmin");
 	    require(_ownerOf(_tokenId) == true, "Auction your NFT");
 	    
 	    auction memory _auction = auction({
@@ -129,8 +129,8 @@ contract YL1155Marketplace is IERC1155Receiver,ReentrancyGuard{
         start: block.timestamp,
         end : block.timestamp + (_time * 86400),
         tokenId: _tokenId,
-        auctioner: msg.sender,
-        highestBidder: msg.sender,
+        auctioner: address(TokenX),
+        highestBidder: address(TokenX),
         highestBid: _price,
         prevBid : new address[](0),
         prevBidAmounts : new uint256[](0),
@@ -174,7 +174,7 @@ contract YL1155Marketplace is IERC1155Receiver,ReentrancyGuard{
     }
 
     function adminListedNFT(uint256 _tokenId,uint256 _price,uint256 amount,bytes memory data) public returns(uint256){
-        require( proxy.isSuperAdmin(msg.sender) == true,'You are not superadmin');
+        require( proxy.isSuperAdmin(msg.sender) == true,"You are not superadmin");
         require(_ownerOf(_tokenId) == true, "Auction your NFT");
         auction memory _auction = auction({
 	    auctionId : totalAuctionId.current(),
@@ -201,12 +201,12 @@ contract YL1155Marketplace is IERC1155Receiver,ReentrancyGuard{
 
     function changePrice(uint256 _auctionId,uint256 price) public{
         auction storage auction = auctions[_auctionId];
-        require(msg.sender == auction.auctioner,'You are not allowed' );
+        require(msg.sender == auction.auctioner,"You are not allowed" );
         auction.highestBid=price;
     }
 
     function buyAdminListedNFT(uint256 _auctionId) public {
-        require(pauseStatus[_auctionId] ==false,'Auction id is paused');
+        require(pauseStatus[_auctionId] ==false,"Auction id is paused");
         require(auctions[_auctionId].auctioner == msg.sender,"only auctioner");
         require(uint256(auctions[_auctionId].end) >= uint256(block.number),"already Finshed");
         
@@ -222,7 +222,6 @@ contract YL1155Marketplace is IERC1155Receiver,ReentrancyGuard{
 
     }
 
-    
     function userListedNFT(uint256 _tokenId,uint256 _price,uint256 amount,bytes memory data) public returns(uint256){
         require(_ownerOf(_tokenId) == true, "Auction your NFT");
         auction memory _auction = auction({
@@ -248,10 +247,9 @@ contract YL1155Marketplace is IERC1155Receiver,ReentrancyGuard{
 	    return uint256(totalAuctionId.current());
     }
 
-   
 
     function buyUserListedNFT(uint256 _auctionId) public {
-        require(pauseStatus[_auctionId] ==false,'Auction id is paused');
+        require(pauseStatus[_auctionId] ==false,"Auction id is paused");
         require(auctions[_auctionId].auctioner == msg.sender,"only auctioner");
         require(uint256(auctions[_auctionId].end) >= uint256(block.number),"already Finshed");
         
@@ -268,7 +266,7 @@ contract YL1155Marketplace is IERC1155Receiver,ReentrancyGuard{
     }
 
     function adminUnlistedNFT(uint256 _auctionId) public{
-        require(pauseStatus[_auctionId] ==false,'Auction id is paused');
+        require(pauseStatus[_auctionId] ==false,"Auction id is paused");
         require(auctions[_auctionId].auctioner == msg.sender,"only auctioner");
         require(uint256(auctions[_auctionId].end) >= uint256(block.number),"already Finshed");
         
@@ -284,7 +282,7 @@ contract YL1155Marketplace is IERC1155Receiver,ReentrancyGuard{
     }
     
     function placeBid(uint256 _auctionId)public payable returns(bool){
-        require(pauseStatus[_auctionId] ==false,'Auction id is paused');
+        require(pauseStatus[_auctionId] ==false,"Auction id is paused");
         require(auctions[_auctionId].highestBid < msg.value,"Place a higher Bid");
         require(auctions[_auctionId].auctioner != msg.sender,"Not allowed");
         require(auctions[_auctionId].end > block.timestamp,"Auction Finished");
@@ -307,7 +305,7 @@ contract YL1155Marketplace is IERC1155Receiver,ReentrancyGuard{
     }
     
     function finishAuction(uint256 _auctionId) public{
-        require(pauseStatus[_auctionId] ==false,'Auction id is paused');
+        require(pauseStatus[_auctionId] ==false,"Auction id is paused");
         require(auctions[_auctionId].auctioner == msg.sender,"only auctioner");
         require(uint256(auctions[_auctionId].end) >= uint256(block.number),"already Finshed");
         
@@ -341,13 +339,13 @@ contract YL1155Marketplace is IERC1155Receiver,ReentrancyGuard{
     // }
 
     function adminWithdrawFromEscrow(address payable _to) public nonReentrant{
-        require( proxy.isSuperAdmin(msg.sender) == true,'You are not superadmin');
+        require( proxy.isSuperAdmin(msg.sender) == true,"You are not superadmin");
         emit AdminWithdrawFromEscrow1155(msg.sender,address(this).balance,_to,block.timestamp);
         _to.transfer(address(this).balance);
     }
 
     function adminWithdrawFromEscrow(uint256 amount) public nonReentrant{
-          require( proxy.isSuperAdmin(msg.sender) == true,'You are not superadmin');
+          require( proxy.isSuperAdmin(msg.sender) == true,"You are not superadmin");
           payable(msg.sender).transfer(amount);
     }
 
@@ -363,7 +361,7 @@ contract YL1155Marketplace is IERC1155Receiver,ReentrancyGuard{
     }
 
     function  adminTransferNFT(address _to,uint256 _tokenId,uint256 amount,bytes memory data) public{
-        require( proxy.isSuperAdmin(msg.sender) == true,'You are not superadmin');
+        require( proxy.isSuperAdmin(msg.sender) == true,"You are not superadmin");
         emit AdminTransferNFT1155(msg.sender,_tokenId,_to,block.timestamp);
         TokenX.safeTransferFrom(msg.sender,_to,_tokenId,amount,data);
     }
