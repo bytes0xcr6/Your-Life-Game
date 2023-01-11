@@ -8,8 +8,6 @@ const hre = require("hardhat");
 
 async function main() {
   const baseURI = "<BASE URI TO SET>";
-  const { Owner } = await hre.ethers.getSigners();
-  console.log("Contracts deployer / Owner:", Owner);
 
   // DEPLOY - YLT Token Contract
   const YLT = await hre.ethers.getContractFactory("YLT");
@@ -43,10 +41,6 @@ async function main() {
     yl1155Marketplace.address
   );
 
-  // set MARKETplace 1155 Address in the ERC1155 contract
-  await ylNFT1155.setMarketAddress(yl1155Marketplace.address);
-  console.log("Marketplace1155 set in the ERC1155");
-
   // DEPLOY - ERC721 Contract (WE NEED TO SET THE MARKET ADDRESS BY FUNCTION)
   const YLNFT = await hre.ethers.getContractFactory("YLNFT");
   const ylNFT = await YLNFT.deploy(ylProxy.address);
@@ -79,11 +73,6 @@ async function main() {
     ylNFTMarketplace1.address
   );
 
-  // SET MARKETplaces-721 (1 & 2) Addresses in the ERC721 contract
-  await ylNFT.setMarketAddress1(ylNFTMarketplace1.address);
-  await ylNFT.setMarketAddress2(ylNFTMarketplace2.address);
-  console.log("Marketplaces721 (1 & 2) set in the ERC721 contract");
-
   // DEPLOY - YLVault FABRIC contract (Imports substorage Vault.sol)
   const YLVault = await hre.ethers.getContractFactory("YLVault");
   const ylVault = await YLVault.deploy(
@@ -101,7 +90,8 @@ async function main() {
     ylNFT1155.address,
     ylNFTMarketplace1.address,
     ylNFTMarketplace2.address,
-    ylt.address
+    ylt.address,
+    ylProxy.address
   );
   await auction.deployed();
   console.log("Auction contract deployed to:", auction.address);
@@ -118,7 +108,16 @@ async function main() {
   await contestGame.deployed();
   console.log("ContestGame contract deployed to:", contestGame.address);
 
-  console.log("10 contracts deployed!!");
+  // SET contracts addresses to YLProxy contract.
+  await ylProxy.setERC1155Market(yl1155Marketplace.address);
+  await ylProxy.setYLTAddress(ylt.address);
+  await ylProxy.setMarketNFTAddress1(ylNFTMarketplace1.address);
+  await ylProxy.setMarketNFTAddress2(ylNFTMarketplace2.address);
+  await ylProxy.setYLVault(ylVault.address);
+  await ylProxy.setAuctionAddress(auction.address);
+  await ylProxy.setNFTAddress(ylNFT.address);
+
+  console.log("\n✅ 10 contracts deployed!!");
 }
 // We recommend this pattern to be able to use async/await everywhere
 // and properly handle errors.
