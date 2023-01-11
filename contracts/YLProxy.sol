@@ -10,11 +10,16 @@ import "hardhat/console.sol";
 contract YLProxy is ReentrancyGuard, Ownable {
     address public _ylOwner;
     address public prevadmin;
+    address private marketNFTAddress1;
+    address private marketNFTAddress2;
+    address private marketERC1155Address;
+    address private ylVault;
+    address private auctionAddress;
+    address private nftAddress;
     uint256 public sufficientstakeamount;
     bool public paused;
 
     IERC20 public ylt;
-    address public nftAddress;
 
     constructor(address _yltAddress) {
         _ylOwner = msg.sender;
@@ -88,6 +93,37 @@ contract YLProxy is ReentrancyGuard, Ownable {
         return true;
     }
 
+    // NFT Market place 1
+    function setMarketNFTAddress1(address _marketAddress)
+        public
+        onlyOwner
+    {
+        marketNFTAddress1 = _marketAddress;
+    }
+
+    // NFT Market place 2
+    function setMarketNFTAddress2(address _marketAddress)
+        public
+        onlyOwner
+    {
+        marketNFTAddress2 = _marketAddress;
+    }
+
+    // Auction address
+    function setAuctionAddress(address _auctionAddress) public onlyOwner{
+        auctionAddress = _auctionAddress;
+    }
+
+    // YLVault address
+    function setYLVault(address _ylVault) public onlyOwner {
+        ylVault = _ylVault;
+    }
+
+    // ERC1155 market place 
+    function setERC1155Market(address _marketERC1155Address) public onlyOwner {
+        marketERC1155Address  = _marketERC1155Address;  
+    }
+    
     //sufficient Amount
     function setSufficientAmount(uint256 _amount)
         public
@@ -120,8 +156,8 @@ contract YLProxy is ReentrancyGuard, Ownable {
             stakedAmount[_to][address(ylt)] >= _amount,
             "Insufficient staked amount"
         );
-        ylt.transfer(_to, _amount);
         stakedAmount[_to][address(ylt)] -= _amount;
+        ylt.transfer(_to, _amount);
         emit WithdrawStake(_to, _amount, address(this), address(ylt));
     }
 
@@ -252,5 +288,25 @@ contract YLProxy is ReentrancyGuard, Ownable {
 
     function totalStakedAmount(address _user, address _contract) external view returns(uint){
         return stakedAmount[_user][_contract];
+    }
+
+    function getNFTMarket1Addr() public view returns (address){
+        return marketNFTAddress1;
+    }
+
+    function getNFTMarket2Addr() public view returns (address){
+        return marketNFTAddress1;
+    }
+
+    function getYLVaultAddr() public view returns(address) {
+        return ylVault;
+    }
+
+    function getAuctionAddr() public view returns(address) {
+        return auctionAddress;
+    }
+
+    function getMarketERC1155Addr() public view returns(address) {
+        return marketERC1155Address;
     }
 }
