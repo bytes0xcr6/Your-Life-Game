@@ -143,7 +143,6 @@ contract YLNFT is
         );
         if(proxy.isAthleteAccount(msg.sender) && bytes(_sport).length != 0){
             require(!proxy.athleteMintCheck(msg.sender), "You already minted a sportsman NFT");
-            proxy.athleteMintStatus(msg.sender, true);
         }
         require(
             categoryAmount[_sport][_cnft] >= (categoryCount[_sport][_cnft]) + 1,
