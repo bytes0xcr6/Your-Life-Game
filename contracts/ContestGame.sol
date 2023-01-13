@@ -54,7 +54,7 @@ contract ContestGame {
 
     event MatchCreated(address player1, address player2, string category, uint matchID, uint creationTime);
     event MatchFinished(address winner, string category, address looser, uint matchID, uint tournamentID, uint settedTime);
-    event tournamentMatchFinished(address winner, string category, address looser, uint matchID, uint tournamentID, uint settedTime);
+    event TournamentMatchFinished(address winner, string category, address looser, uint matchID, uint tournamentID, uint settedTime);
     event TournamentCommissionSetted(uint settedFee, uint settedTime);
     event TournamentCreated(string category, uint tournamentID, uint maxPlayers, uint tournamentFee, uint creationTime);
     event TournamentFeePaid(address player, uint tournamentID, uint settedTime);
@@ -136,7 +136,7 @@ contract ContestGame {
         if(_tournamentID > 0) {
             roundReached[_tournamentID][winner]++;
             hasPlayed[_tournamentID][roundReached[_tournamentID][looser]][looser] = true;
-            emit tournamentMatchFinished (winner, _category, looser, _matchID, _tournamentID, block.timestamp);
+            emit TournamentMatchFinished (winner, _category, looser, _matchID, _tournamentID, block.timestamp);
         }
 
 
