@@ -227,4 +227,5 @@ contract ContestGame {
     function getTournament(uint _tournamentID) public view returns(Tournament memory){
         return tournamentIndex[_tournamentID];
     }
+
 }
