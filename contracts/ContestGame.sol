@@ -55,7 +55,6 @@ contract ContestGame {
     event MatchCreated(address player1, address player2, string category, uint matchID, uint creationTime);
     event MatchFinished(address winner, string category, address looser, uint matchID, uint tournamentID, uint settedTime);
     event TournamentMatchFinished(address winner, string category, address looser, uint matchID, uint tournamentID, uint settedTime);
-    event TournamentCommissionSetted(uint settedFee, uint settedTime);
     event TournamentCreated(string category, uint tournamentID, uint maxPlayers, uint tournamentFee, uint creationTime);
     event TournamentFeePaid(address player, uint tournamentID, uint settedTime);
     event MinTokensStakedPlayUpdated(uint minYLTStaked, uint settedTime);
@@ -73,6 +72,7 @@ contract ContestGame {
         vaultAddress = _vault;
     }
 
+    // Function to create a match ID setting the players and the category. Then Betters can bet on the match before it is finished.
     function createMatchID(address _player1, address _player2, string memory _category) public onlyOwner{
 
         Match memory _match = Match (
@@ -152,6 +152,7 @@ contract ContestGame {
     return randomnumber;
     }
 
+    // Function to crate a new torunament with all the details needed.
     function createTournament(string memory _category, uint _maxPlayers, uint _tournamentFee ) external onlyOwner {
         // require("Que sean pares");
         Tournament memory newTournament;
@@ -207,6 +208,11 @@ contract ContestGame {
         return resultsPlayer[_player][_decision];
     }
 
+    // Getter for the tournament details.
+    function getTournament(uint _tournamentID) public view returns(Tournament memory){
+        return tournamentIndex[_tournamentID];
+    }
+
     /* 
         1. Check the round where the player is at the moment in the tournament.
         2. Check if the player has played. 
@@ -223,9 +229,4 @@ contract ContestGame {
     function roundPlayed(uint _tournamentID, uint _round, address _player) public view returns(bool){
         return hasPlayed[_tournamentID][_round][_player];
     }
-
-    function getTournament(uint _tournamentID) public view returns(Tournament memory){
-        return tournamentIndex[_tournamentID];
-    }
-
 }
